@@ -7,6 +7,6 @@ import org.springframework.data.repository.query.Param;
 
 public interface Faculty_Repo extends JpaRepository<Faculty, String> {
 	
-	@Query("from Faculty where user_email= :user_email")
-	Faculty find(@Param("user_email") String user_email);
+	@Query("from Faculty where email= :email")
+	Faculty find(@Param("email") String email);
 }

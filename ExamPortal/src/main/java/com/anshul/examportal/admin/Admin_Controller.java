@@ -42,7 +42,7 @@ public class Admin_Controller {
 	public List<String> checkAdminLogin(@RequestBody Admin a) {
 		
 		List<String> list = new ArrayList<>(2);
-		list.add("admin");
+		list.add("ADMIN");
 		
 		Admin admin = aRepo.find(a.getUser_email());
 		if(admin!=null) {
