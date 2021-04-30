@@ -1,6 +1,7 @@
 package com.anshul.examportal.test;
 
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -11,116 +12,151 @@ public class Test {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private int test_id;
+	@Column(name = "test_id")
+	private int testId;
+	
 	private String title;
 	private String password;
-	private boolean is_subjective;
+	
+	@Column(name = "is_subjective")
+	private boolean isSubjective;
+	
 	private int duration; // duration in minutes
-	private String schedule_on;
-	private String result_on;
-	private String created_by;
-	private String subject_code;
+	
+	@Column(name = "schedule_on")
+	private String scheduleOn;
+	
+	@Column(name = "result_on", nullable = true)
+	private String resultOn;
+	
+	@Column(name = "created_by")
+	private String createdBy;
+	
+	@Column(name = "subject_code")
+	private String subjectCode;
+	
 	private String branch;
 	private int sem;
 	private String section;
-	private int negative_marking;
 	
-	public int getTest_id() {
-		return test_id;
+	@Column(name = "marks", nullable = true)
+	private int marks;
+	
+	@Column(name = "negative_marks", nullable = true)
+	private int negativeMarks;
+	
+	public Test() {}
+
+	public int getTestId() {
+		return testId;
 	}
-	
+
+	public void setTestId(int testId) {
+		this.testId = testId;
+	}
+
 	public String getTitle() {
 		return title;
 	}
-	
+
 	public void setTitle(String title) {
 		this.title = title;
 	}
-	
+
 	public String getPassword() {
 		return password;
 	}
-	
+
 	public void setPassword(String password) {
 		this.password = password;
 	}
-	
-	public boolean isIs_subjective() {
-		return is_subjective;
+
+	public boolean isSubjective() {
+		return isSubjective;
 	}
-	
-	public void setIs_subjective(boolean is_subjective) {
-		this.is_subjective = is_subjective;
+
+	public void setSubjective(boolean isSubjective) {
+		this.isSubjective = isSubjective;
 	}
-	
+
 	public int getDuration() {
 		return duration;
 	}
-	
+
 	public void setDuration(int duration) {
 		this.duration = duration;
 	}
 
-	public String getSchedule_on() {
-		return schedule_on;
-	}
-	
-	public void setSchedule_on(String schedule_on) {
-		this.schedule_on = schedule_on;
+	public String getScheduleOn() {
+		return scheduleOn;
 	}
 
-	public String getResult_on() {
-		return result_on;
+	public void setScheduleOn(String scheduleOn) {
+		this.scheduleOn = scheduleOn;
 	}
 
-	public void setResult_on(String result_on) {
-		this.result_on = result_on;
+	public String getResultOn() {
+		return resultOn;
 	}
 
-	public String getCreated_by() {
-		return created_by;
+	public void setResultOn(String resultOn) {
+		this.resultOn = resultOn;
 	}
-	
-	public void setCreated_by(String created_by) {
-		this.created_by = created_by;
+
+	public String getCreatedBy() {
+		return createdBy;
 	}
-	
-	public String getSubject_code() {
-		return subject_code;
+
+	public void setCreatedBy(String createdBy) {
+		this.createdBy = createdBy;
 	}
-	
-	public void setSubject_code(String subject_code) {
-		this.subject_code = subject_code;
+
+	public String getSubjectCode() {
+		return subjectCode;
 	}
-	
+
+	public void setSubjectCode(String subjectCode) {
+		this.subjectCode = subjectCode;
+	}
+
 	public String getBranch() {
 		return branch;
 	}
-	
+
 	public void setBranch(String branch) {
 		this.branch = branch;
 	}
+
 	public int getSem() {
 		return sem;
 	}
-	
+
 	public void setSem(int sem) {
 		this.sem = sem;
 	}
-	
+
 	public String getSection() {
 		return section;
 	}
-	
+
 	public void setSection(String section) {
 		this.section = section;
 	}
-	
-	public int getNegative_marking() {
-		return negative_marking;
+
+	public int getMarks() {
+		return marks;
+	}
+
+	public void setMarks(int marks) {
+		this.marks = marks;
+	}
+
+	public int getNegativeMarks() {
+		return negativeMarks;
+	}
+
+	public void setNegativeMarks(int negativeMarks) {
+		this.negativeMarks = negativeMarks;
 	}
 	
-	public void setNegative_marking(int negative_marking) {
-		this.negative_marking = negative_marking;
-	}
 }

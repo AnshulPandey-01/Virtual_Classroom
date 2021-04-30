@@ -1,5 +1,6 @@
 package com.anshul.examportal.test.sub_test;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
@@ -7,35 +8,39 @@ import javax.persistence.Id;
 public class Subjective_Test {
 	
 	@Id
-	private String question_id;
-	private int test_id;
-	private String question_description;
+	@Column(name = "question_id")
+	private String questionId;
+
+	@Column(name = "test_id")
+	private int testId;
+	
+	private String question;
 	private int marks;
 	
 	public Subjective_Test() {}
 
-	public String getQuestion_id() {
-		return question_id;
+	public String getQuestionId() {
+		return questionId;
 	}
 
-	public void setQuestion_id(String question_id) {
-		this.question_id = question_id;
+	public void setQuestionId(String questionId) {
+		this.questionId = questionId;
 	}
 
-	public int getTest_id() {
-		return test_id;
+	public int getTestId() {
+		return testId;
 	}
 
-	public void setTest_id(int test_id) {
-		this.test_id = test_id;
+	public void setTestId(int testId) {
+		this.testId = testId;
 	}
 
-	public String getQuestion_description() {
-		return question_description;
+	public String getQuestion() {
+		return question;
 	}
 
-	public void setQuestion_description(String question_description) {
-		this.question_description = question_description;
+	public void setQuestion(String question) {
+		this.question = question;
 	}
 
 	public int getMarks() {
@@ -45,6 +50,5 @@ public class Subjective_Test {
 	public void setMarks(int marks) {
 		this.marks = marks;
 	}
-	
 	
 }

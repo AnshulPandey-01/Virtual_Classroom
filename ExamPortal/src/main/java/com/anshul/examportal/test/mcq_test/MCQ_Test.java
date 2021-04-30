@@ -1,5 +1,6 @@
 package com.anshul.examportal.test.mcq_test;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
@@ -7,32 +8,38 @@ import javax.persistence.Id;
 public class MCQ_Test {
 	
 	@Id
-	private String question_id;
-	private int test_id;
+	@Column(name = "question_id")
+	private String questionId;
+	
+	@Column(name = "test_id")
+	private int testId;
+	
 	private String question;
 	private int marks;
-	private String choice1;
-	private String choice2;
-	private String choice3;
-	private String choice4;
-	private String correct_choice;
+	private String option1;
+	private String option2;
+	private String option3;
+	private String option4;
+	
+	@Column(name = "correct_option")
+	private String correctOption;
 	
 	public MCQ_Test() {}
 
-	public String getQuestion_id() {
-		return question_id;
+	public String getQuestionId() {
+		return questionId;
 	}
 
-	public void setQuestion_id(String question_id) {
-		this.question_id = question_id;
+	public void setQuestionId(String questionId) {
+		this.questionId = questionId;
 	}
 
-	public int getTest_id() {
-		return test_id;
+	public int getTestId() {
+		return testId;
 	}
 
-	public void setTest_id(int test_id) {
-		this.test_id = test_id;
+	public void setTestId(int testId) {
+		this.testId = testId;
 	}
 
 	public String getQuestion() {
@@ -51,43 +58,44 @@ public class MCQ_Test {
 		this.marks = marks;
 	}
 
-	public String getChoice1() {
-		return choice1;
+	public String getOption1() {
+		return option1;
 	}
 
-	public void setChoice1(String choice1) {
-		this.choice1 = choice1;
+	public void setOption1(String option1) {
+		this.option1 = option1;
 	}
 
-	public String getChoice2() {
-		return choice2;
+	public String getOption2() {
+		return option2;
 	}
 
-	public void setChoice2(String choice2) {
-		this.choice2 = choice2;
+	public void setOption2(String option2) {
+		this.option2 = option2;
 	}
 
-	public String getChoice3() {
-		return choice3;
+	public String getOption3() {
+		return option3;
 	}
 
-	public void setChoice3(String choice3) {
-		this.choice3 = choice3;
+	public void setOption3(String option3) {
+		this.option3 = option3;
 	}
 
-	public String getChoice4() {
-		return choice4;
+	public String getOption4() {
+		return option4;
 	}
 
-	public void setChoice4(String choice4) {
-		this.choice4 = choice4;
+	public void setOption4(String option4) {
+		this.option4 = option4;
 	}
 
-	public String getCorrect_choice() {
-		return correct_choice;
+	public String getCorrectOption() {
+		return correctOption;
 	}
 
-	public void setCorrect_choice(String correct_choice) {
-		this.correct_choice = correct_choice;
+	public void setCorrectOption(String correctOption) {
+		this.correctOption = correctOption;
 	}
+	
 }

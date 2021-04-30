@@ -56,7 +56,7 @@ public class Faculty_Controller {
 	
 	@GetMapping("/tests/{faculty}")
 	public List<Test> getTests(@PathVariable("faculty") String name){
-		List<Test> list = tRepo.getByCreated_by(name);
+		List<Test> list = tRepo.findByCreatedBy(name);
 		return list;
 	}
 	
@@ -64,13 +64,13 @@ public class Faculty_Controller {
 	@PostMapping(path="create_test", consumes = {"application/json"})
 	public int addTest(@RequestBody Test t) {
 		Test test = tRepo.save(t);
-		return test.getTest_id();
+		return test.getTestId();
 	}
 	
 	@PostMapping(path="create_mcq_test", consumes = {"application/json"})
 	public boolean addMCQTest(@RequestBody List<MCQ_Test> m_test) {
 		for(MCQ_Test mt : m_test) 
-			mt.setQuestion_id(mt.getTest_id() + "-" + mt.getQuestion_id());
+			mt.setQuestionId(mt.getTestId() + "-" + mt.getQuestionId());
 		
 		try {
 			mRepo.saveAll(m_test);
@@ -84,7 +84,7 @@ public class Faculty_Controller {
 	@PostMapping(path="create_sub_test", consumes = {"application/json"})
 	public boolean addSUBTest(@RequestBody List<Subjective_Test> s_test) {
 		for(Subjective_Test st : s_test) 
-			st.setQuestion_id(st.getTest_id() + "-" + st.getQuestion_id());
+			st.setQuestionId(st.getTestId() + "-" + st.getQuestionId());
 		
 		try {
 			sRepo.saveAll(s_test);
