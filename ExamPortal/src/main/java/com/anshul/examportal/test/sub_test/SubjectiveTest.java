@@ -3,9 +3,12 @@ package com.anshul.examportal.test.sub_test;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Table;
 
-@Entity
-public class Subjective_Test {
+import com.anshul.examportal.test.TestContainer;
+
+@Entity(name = "Subjective_Test")
+public class SubjectiveTest implements TestContainer {
 	
 	@Id
 	@Column(name = "question_id")
@@ -17,7 +20,7 @@ public class Subjective_Test {
 	private String question;
 	private int marks;
 	
-	public Subjective_Test() {}
+	public SubjectiveTest() {}
 
 	public String getQuestionId() {
 		return questionId;

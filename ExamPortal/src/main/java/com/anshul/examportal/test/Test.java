@@ -7,6 +7,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
+import org.hibernate.annotations.Type;
+
 @Entity
 public class Test {
 	
@@ -18,9 +20,9 @@ public class Test {
 	private String title;
 	private String password;
 	
-	@Column(name = "is_subjective")
+	@Column(name = "is_subjective", columnDefinition="INT(1)")
 	private boolean isSubjective;
-	
+
 	private int duration; // duration in minutes
 	
 	@Column(name = "schedule_on")
@@ -47,6 +49,14 @@ public class Test {
 	
 	public Test() {}
 
+	@Override
+	public String toString() {
+		return "Test [testId=" + testId + ", title=" + title + ", password=" + password + ", isSubjective="
+				+ isSubjective + ", duration=" + duration + ", scheduleOn=" + scheduleOn + ", resultOn=" + resultOn
+				+ ", createdBy=" + createdBy + ", subjectCode=" + subjectCode + ", branch=" + branch + ", sem=" + sem
+				+ ", section=" + section + ", marks=" + marks + ", negativeMarks=" + negativeMarks + "]";
+	}
+
 	public int getTestId() {
 		return testId;
 	}
@@ -70,12 +80,12 @@ public class Test {
 	public void setPassword(String password) {
 		this.password = password;
 	}
-
-	public boolean isSubjective() {
+	
+	public boolean getIsSubjective() {
 		return isSubjective;
 	}
 
-	public void setSubjective(boolean isSubjective) {
+	public void setIsSubjective(boolean isSubjective) {
 		this.isSubjective = isSubjective;
 	}
 

@@ -3,9 +3,12 @@ package com.anshul.examportal.test.mcq_test;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Table;
 
-@Entity
-public class MCQ_Test {
+import com.anshul.examportal.test.TestContainer;
+
+@Entity(name = "MCQ_Test")
+public class MCQTest implements TestContainer {
 	
 	@Id
 	@Column(name = "question_id")
@@ -15,7 +18,6 @@ public class MCQ_Test {
 	private int testId;
 	
 	private String question;
-	private int marks;
 	private String option1;
 	private String option2;
 	private String option3;
@@ -24,7 +26,7 @@ public class MCQ_Test {
 	@Column(name = "correct_option")
 	private String correctOption;
 	
-	public MCQ_Test() {}
+	public MCQTest() {}
 
 	public String getQuestionId() {
 		return questionId;
@@ -48,14 +50,6 @@ public class MCQ_Test {
 
 	public void setQuestion(String question) {
 		this.question = question;
-	}
-
-	public int getMarks() {
-		return marks;
-	}
-
-	public void setMarks(int marks) {
-		this.marks = marks;
 	}
 
 	public String getOption1() {

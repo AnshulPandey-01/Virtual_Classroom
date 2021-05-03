@@ -1,5 +1,6 @@
 package com.anshul.examportal.student;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
@@ -7,7 +8,8 @@ import javax.persistence.Id;
 public class Student {
 
 	@Id
-	private String roll_no;
+	@Column(name="roll_no")
+	private String rollNo;
 	private String email;
 	private String name;
 	private String password;
@@ -17,12 +19,18 @@ public class Student {
 	
 	public Student() {}
 
-	public String getRoll_no() {
-		return roll_no;
+	@Override
+	public String toString() {
+		return "Student [rollNo=" + rollNo + ", email=" + email + ", name=" + name + ", password=" + password
+				+ ", branch=" + branch + ", sem=" + sem + ", section=" + section + "]";
+	}
+	
+	public String getRollNo() {
+		return rollNo;
 	}
 
-	public void setRoll_no(String roll_no) {
-		this.roll_no = roll_no;
+	public void setRollNo(String rollNo) {
+		this.rollNo = rollNo;
 	}
 
 	public String getEmail() {
@@ -72,8 +80,5 @@ public class Student {
 	public void setSection(String section) {
 		this.section = section;
 	}
-	
-	
-	
 	
 }

@@ -2,6 +2,9 @@ package com.anshul.examportal.faculty;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -13,25 +16,25 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.anshul.examportal.test.Test;
-import com.anshul.examportal.test.Test_Repo;
-import com.anshul.examportal.test.mcq_test.MCQ_Test;
-import com.anshul.examportal.test.mcq_test.MCQ_Test_Repo;
-import com.anshul.examportal.test.sub_test.Sub_Test_Repo;
-import com.anshul.examportal.test.sub_test.Subjective_Test;
+import com.anshul.examportal.test.TestRepo;
+import com.anshul.examportal.test.mcq_test.MCQTest;
+import com.anshul.examportal.test.mcq_test.MCQTestRepo;
+import com.anshul.examportal.test.sub_test.SubTestRepo;
+import com.anshul.examportal.test.sub_test.SubjectiveTest;
 
 
-@CrossOrigin(origins ="http://localhost:4500")
+@CrossOrigin//(origins ="http://localhost:4500")
 @RestController
-public class Faculty_Controller {
+public class FacultyController {
 	
 	@Autowired
-	private Faculty_Repo fRepo;
+	private FacultyRepo fRepo;
 	@Autowired
-	private Test_Repo tRepo;
+	private TestRepo tRepo;
 	@Autowired
-	private MCQ_Test_Repo mRepo;
+	private MCQTestRepo mcqRepo;
 	@Autowired
-	private Sub_Test_Repo sRepo;
+	private SubTestRepo subRepo;
 	
 	private static BCryptPasswordEncoder passwordEcorder = new BCryptPasswordEncoder();
 	
@@ -42,7 +45,7 @@ public class Faculty_Controller {
 		List<String> list = new ArrayList<>(2);
 		list.add("FACULTY");
 		
-		Faculty faculty = fRepo.find(f.getEmail());
+		Faculty faculty = fRepo.getByEmail(f.getEmail());
 		if(faculty!=null) {
 			if(passwordEcorder.matches(f.getPassword(), faculty.getPassword())) {
 				list.add(faculty.getName());
@@ -63,17 +66,18 @@ public class Faculty_Controller {
 	
 	@PostMapping(path="create_test", consumes = {"application/json"})
 	public int addTest(@RequestBody Test t) {
+		System.out.println(t.toString());
 		Test test = tRepo.save(t);
 		return test.getTestId();
 	}
 	
 	@PostMapping(path="create_mcq_test", consumes = {"application/json"})
-	public boolean addMCQTest(@RequestBody List<MCQ_Test> m_test) {
-		for(MCQ_Test mt : m_test) 
+	public boolean addMCQTest(@RequestBody List<MCQTest> m_test) {
+		for(MCQTest mt : m_test) 
 			mt.setQuestionId(mt.getTestId() + "-" + mt.getQuestionId());
 		
 		try {
-			mRepo.saveAll(m_test);
+			mcqRepo.saveAll(m_test);
 			return true;
 		}catch (Exception e) {
 			System.out.println(e.getMessage());
@@ -82,12 +86,12 @@ public class Faculty_Controller {
 	}
 	
 	@PostMapping(path="create_sub_test", consumes = {"application/json"})
-	public boolean addSUBTest(@RequestBody List<Subjective_Test> s_test) {
-		for(Subjective_Test st : s_test) 
+	public boolean addSUBTest(@RequestBody List<SubjectiveTest> s_test) {
+		for(SubjectiveTest st : s_test) 
 			st.setQuestionId(st.getTestId() + "-" + st.getQuestionId());
 		
 		try {
-			sRepo.saveAll(s_test);
+			subRepo.saveAll(s_test);
 			return true;
 		}catch (Exception e) {
 			System.out.println(e.getMessage());

@@ -12,9 +12,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.anshul.examportal.faculty.Faculty;
-import com.anshul.examportal.faculty.Faculty_Repo;
+import com.anshul.examportal.faculty.FacultyRepo;
 import com.anshul.examportal.student.Student;
-import com.anshul.examportal.student.Student_Repo;
+import com.anshul.examportal.student.StudentRepo;
 
 
 @CrossOrigin(origins ="http://localhost:4500")
@@ -24,9 +24,9 @@ public class Admin_Controller {
 	@Autowired
 	private Admin_Repo aRepo;
 	@Autowired
-	private Faculty_Repo fRepo;
+	private FacultyRepo fRepo;
 	@Autowired
-	private Student_Repo sRepo;
+	private StudentRepo sRepo;
 	
 	private static BCryptPasswordEncoder passwordEcorder = new BCryptPasswordEncoder();
 	
@@ -104,7 +104,7 @@ public class Admin_Controller {
 	@PostMapping(path="remove_student", consumes= {"application/json"})
 	public boolean deleteStudent(@RequestBody Student s) {
 		try {
-			sRepo.deleteById(s.getRoll_no());
+			sRepo.deleteById(s.getRollNo());
 			return true;
 		}catch(Exception e) {
 			System.out.println(e.getMessage());
@@ -114,7 +114,7 @@ public class Admin_Controller {
 	
 	@PostMapping(path="add_student", consumes= {"application/json"})
 	public boolean addStudent(@RequestBody Student s) {
-		if(sRepo.existsById(s.getRoll_no())) return false;
+		if(sRepo.existsById(s.getRollNo())) return false;
 		try {
 			s.setPassword(passwordEcorder.encode(s.getPassword()));
 			sRepo.save(s);
