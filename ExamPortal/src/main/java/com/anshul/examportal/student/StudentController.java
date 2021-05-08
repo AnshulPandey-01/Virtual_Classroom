@@ -69,40 +69,55 @@ public class StudentController {
 	}
 	
 	@GetMapping("/student_tests/{rollNo}")
-	public List<ScheduledTests> getStudentTests(@PathVariable("rollNo") String rollNo) throws ParseException{
+	public List<ScheduledTests> getStudentTests(@PathVariable("rollNo") String rollNo){
 		Student student = sRepo.getByRollNo(rollNo);
 		List<Test> tests = tRepo.getBySBS(student.getSem(), student.getBranch(), student.getSection());
 		
 		List<ScheduledTests> s = new ArrayList<>();
 		for(Test t : tests) {
-			/* do the test check for removing past tests
-			Date scheduleDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(t.getScheduleOn());
-			Date currentDate = new Date(System.currentTimeMillis());
-			System.out.println(currentDate.before(scheduleDate) + " " + scheduleDate + " | " + currentDate);
-			*/
-			
-			ScheduledTests st = new ScheduledTests(t.getTitle(), t.getSubjectCode(), t.getIsSubjective(), t.getDuration(), t.getScheduleOn(), t.getResultOn(), t.getNegativeMarks());
-			
-			if(t.getIsSubjective()) {
-				TestDetails td = subRepo.getNoOfQuestions(t.getTestId());
-				st.setNoOfQuestions(td.getNoOfQuestions());
-				st.setTotalMarks(td.getTotalMarks());
+			if(isSchecduledTest(t.getScheduleOn(), t.getDuration())) {
+				ScheduledTests st = new ScheduledTests(t.getTitle(), t.getSubjectCode(), t.getIsSubjective(), t.getDuration(), t.getScheduleOn(), t.getResultOn(), t.getNegativeMarks());
+				
+				if(t.getIsSubjective()) {
+					TestDetails td = subRepo.getNoOfQuestions(t.getTestId());
+					st.setNoOfQuestions(td.getNoOfQuestions());
+					st.setTotalMarks(td.getTotalMarks());
+				}else {
+					st.setNoOfQuestions(mcqRepo.getNoOfQuestions(t.getTestId()));
+					st.setTotalMarks(st.getNoOfQuestions() * t.getMarks());
+				}
+				s.add(st);
 			}else {
-				st.setNoOfQuestions(mcqRepo.getNoOfQuestions(t.getTestId()));
-				st.setTotalMarks(st.getNoOfQuestions() * t.getMarks());
+				System.out.println(t.getTestId());
 			}
-			s.add(st);
 		}
 		
 		return s;
 	}
 	
+	private boolean isSchecduledTest(String dateTime, int duration){
+		try {
+			System.out.println(dateTime + " | " + duration);
+			
+			Date scheduleTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(dateTime);
+			Date endTime = new Date(scheduleTime.getTime() + duration * ONE_MINUTE_IN_MILLIS);
+			Date currentTime = new Date(System.currentTimeMillis());
+			
+			System.out.println(currentTime + " | " + scheduleTime + " | " + endTime);
+			
+			return currentTime.before(endTime);
+		}catch (Exception e) {
+			System.out.println(e.getMessage());
+			return false;
+		}
+	}
+	
 	@PostMapping("/student/authenticate_test")
-	public List<Boolean> checkTest(@RequestBody Test t) {
-		List<Boolean> list = new ArrayList<>();
-		
+	public List<Boolean> checkTest(@RequestBody Test t) throws ParseException {
 		Test test = tRepo.getByTestId(t.getTestId());
-		if(test!=null && test.getPassword().equals(t.getPassword())) {
+		
+		List<Boolean> list = new ArrayList<>();
+		if(test!=null && test.getPassword().equals(t.getPassword()) && testTime(test.getScheduleOn(), test.getDuration())) {
 			list.add(true);
 			list.add(test.getIsSubjective());
 			return list;
@@ -114,46 +129,42 @@ public class StudentController {
 	}
 	
 	@GetMapping("/Test/{testId}")
-	public List<TestContainer> getTestQuestions(@PathVariable("testId") int testId) throws ParseException{
+	public List<TestContainer> getTestQuestions(@PathVariable("testId") int testId){
 		Test t = tRepo.getByTestId(testId);
 		
-		/* add time check
-		if(scheduledDateTime(t.getScheduleOn().split(" "), t.getDuration())) {
-			
-		}
-		*/
-		
-		List<TestContainer> test;
-		if(t.getIsSubjective()) {
-			test = subRepo.findByTestId(testId);
-		}else{
-			test = mcqRepo.findByTestId(testId);
-			for(int i = 0; i<test.size(); i++) {
-				MCQTest mcq = (MCQTest)test.get(i);
-				mcq.setCorrectOption(String.valueOf(t.getMarks()));
-				test.set(i, mcq);
+		if(testTime(t.getScheduleOn(), t.getDuration())) {
+			List<TestContainer> test;
+			if(t.getIsSubjective()) {
+				test = subRepo.findByTestId(testId);
+			}else{
+				test = mcqRepo.findByTestId(testId);
+				for(int i = 0; i<test.size(); i++) {
+					MCQTest mcq = (MCQTest)test.get(i);
+					mcq.setCorrectOption(String.valueOf(t.getMarks()));
+					test.set(i, mcq);
+				}
 			}
+			return test;
 		}
-		return test;
+		
+		return null;
 	}
 	
-	private boolean scheduledDateTime(String[] dateTime, int duration) throws ParseException{
-		System.out.println("["  + dateTime[0] + ", " + dateTime[1] + "] " + duration);
-		
-		String currentdate = LocalDate.now().toString();
-		int currentHour = LocalTime.now().getHour();
-		int currentminute = LocalTime.now().getMinute();
-		
-		System.out.println(currentdate + " " + currentHour + ":" + currentminute);
-		
-		//if(dateTime[0].equals(currentdate)) {
-			Date scheduleDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(dateTime[0] + " " + dateTime[1]);
-			Date endDate = new Date(scheduleDate.getTime() + duration * ONE_MINUTE_IN_MILLIS);
+	private boolean testTime(String dateTime, int duration){
+		try {
+			System.out.println(dateTime + " | " + duration);
+			
 			Date currentDate = new Date(System.currentTimeMillis());
-			System.out.println(currentDate.before(endDate) + " " + endDate + " | " + currentDate);
-		//}
-		
-		return false;
+			Date scheduleDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(dateTime);
+			Date endDate = new Date(scheduleDate.getTime() + duration * ONE_MINUTE_IN_MILLIS);
+			
+			System.out.println(currentDate + " | " + scheduleDate + " | " + endDate);
+			
+			return scheduleDate.before(currentDate) && endDate.after(currentDate);
+		}catch (Exception e) {
+			System.out.println(e.getMessage());
+			return false;
+		}
 	}
 	
 }
