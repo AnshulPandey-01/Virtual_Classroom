@@ -15,4 +15,5 @@ public interface StudentRepo extends JpaRepository<Student, String> {
 	
 	@Query("from Student where roll_no= :rollNo")
 	Student getByRollNo(@Param("rollNo") String rollNo);
+	
 }

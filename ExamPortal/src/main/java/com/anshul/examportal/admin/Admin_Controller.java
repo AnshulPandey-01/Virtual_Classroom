@@ -56,6 +56,19 @@ public class Admin_Controller {
 		return list;
 	}
 	
+	@GetMapping("/trial")
+	public List<Faculty> trialCheck(){
+		List<Faculty> list = new ArrayList<>();
+		
+		Faculty f1 = new Faculty("abc@gmail.com", "abc", "123456");
+		Faculty f2 = new Faculty("xyz@gmail.com", "xyz", "987654");
+		
+		list.add(f1);
+		list.add(f2);
+		
+		return list;
+	}
+	
 	@GetMapping("/faculties")
 	public List<Faculty> getFaculties(){
 		List<Faculty> list = fRepo.findAll();

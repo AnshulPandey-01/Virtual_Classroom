@@ -13,6 +13,12 @@ public class Faculty {
 	
 	public Faculty() {}
 
+	public Faculty(String email, String name, String password) {
+		this.email = email;
+		this.name = name;
+		this.password = password;
+	}
+
 	public String getEmail() {
 		return email;
 	}

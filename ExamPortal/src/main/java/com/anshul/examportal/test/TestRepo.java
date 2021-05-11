@@ -16,4 +16,5 @@ public interface TestRepo extends JpaRepository<Test, Integer> {
 	
 	@Query("from Test where sem= :sem and branch= :branch and section= :section")
 	List<Test> getBySBS(@Param("sem") int sem, @Param("branch") String branch, @Param("section") String section);
+	
 }

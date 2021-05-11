@@ -3,6 +3,7 @@ package com.anshul.examportal.test;
 
 public class ScheduledTests {
 	
+	private int testId;
 	private String title;
 	private String subjectCode;
 	private boolean isSubjective;
@@ -15,7 +16,8 @@ public class ScheduledTests {
 	
 	public ScheduledTests() {}
 	
-	public ScheduledTests(String title, String subjectCode, boolean isSubjective, int duration, String scheduleOn, String resultOn, int negativeMarks) {
+	public ScheduledTests(int testId, String title, String subjectCode, boolean isSubjective, int duration, String scheduleOn, String resultOn, int negativeMarks) {
+		this.testId = testId;
 		this.title = title;
 		this.subjectCode = subjectCode;
 		this.isSubjective = isSubjective;
@@ -31,6 +33,14 @@ public class ScheduledTests {
 				+ ", duration=" + duration + ", scheduleOn=" + scheduleOn + ", resultOn=" + resultOn
 				+ ", noOfQuestions=" + noOfQuestions + ", totalMarks=" + totalMarks + ", negativeMarks=" + negativeMarks
 				+ "]";
+	}
+
+	public int getTestId() {
+		return testId;
+	}
+
+	public void setTestId(int testId) {
+		this.testId = testId;
 	}
 
 	public String getTitle() {

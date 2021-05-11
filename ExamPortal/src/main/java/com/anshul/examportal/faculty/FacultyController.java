@@ -2,9 +2,6 @@ package com.anshul.examportal.faculty;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-
-import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -21,6 +18,7 @@ import com.anshul.examportal.test.mcq_test.MCQTest;
 import com.anshul.examportal.test.mcq_test.MCQTestRepo;
 import com.anshul.examportal.test.sub_test.SubTestRepo;
 import com.anshul.examportal.test.sub_test.SubjectiveTest;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 
 @CrossOrigin//(origins ="http://localhost:4500")
@@ -63,12 +61,15 @@ public class FacultyController {
 		return list;
 	}
 	
-	
 	@PostMapping(path="create_test", consumes = {"application/json"})
 	public int addTest(@RequestBody Test t) {
-		System.out.println(t.toString());
-		Test test = tRepo.save(t);
-		return test.getTestId();
+		try{
+			Test test = tRepo.save(t);
+			return test.getTestId();
+		}catch(Exception e){
+			System.out.println(e.getMessage());
+			return 0;
+		}
 	}
 	
 	@PostMapping(path="create_mcq_test", consumes = {"application/json"})
