@@ -27,6 +27,14 @@ public class ScheduledTests {
 		this.negativeMarks = negativeMarks;
 	}
 	
+	public ScheduledTests(int testId, String title, String subjectCode, boolean isSubjective, String resultOn) {
+		this.testId = testId;
+		this.title = title;
+		this.subjectCode = subjectCode;
+		this.isSubjective = isSubjective;
+		this.resultOn = resultOn;
+	}
+	
 	@Override
 	public String toString() {
 		return "ScheduledTests [title=" + title + ", subjectCode=" + subjectCode + ", isSubjective=" + isSubjective
