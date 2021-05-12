@@ -6,4 +6,6 @@ import com.anshul.examportal.test.AnswerId;
 
 public interface SubAnswerRepo extends JpaRepository<SubjectiveAnswer, AnswerId> {
 
+	boolean existsByRollNoAndTestId(String rollNo, int testId);
+	
 }

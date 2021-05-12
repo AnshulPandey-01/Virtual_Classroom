@@ -80,17 +80,15 @@ public class StudentController {
 			if(isSchecduledTest(t.getScheduleOn(), t.getDuration())) {
 				ScheduledTests st = new ScheduledTests(t.getTestId(), t.getTitle(), t.getSubjectCode(), t.getIsSubjective(), t.getDuration(), t.getScheduleOn(), t.getResultOn(), t.getNegativeMarks());
 				
-				if(t.getIsSubjective()) {
+				if(t.getIsSubjective() && !sAnsRepo.existsByRollNoAndTestId(rollNo, t.getTestId())) {
 					TestDetails td = subRepo.getNoOfQuestions(t.getTestId());
 					st.setNoOfQuestions(td.getNoOfQuestions());
 					st.setTotalMarks(td.getTotalMarks());
-				}else {
+				}else if(!mAnsRepo.existsByRollNoAndTestId(rollNo, t.getTestId())) {
 					st.setNoOfQuestions(mcqRepo.getNoOfQuestions(t.getTestId()));
 					st.setTotalMarks(st.getNoOfQuestions() * t.getMarks());
 				}
 				s.add(st);
-			}else {
-				System.out.println(t.getTestId());
 			}
 		}
 		
@@ -121,7 +119,7 @@ public class StudentController {
 		
 		List<Boolean> list = new ArrayList<>();
 		boolean checkTime = true;
-		//checkTime = testTime(test.getScheduleOn(), test.getDuration());
+		checkTime = testTime(test.getScheduleOn(), test.getDuration());
 		
 		if(test!=null && test.getPassword().equals(t.getPassword()) && checkTime) {
 			list.add(true);
@@ -138,7 +136,7 @@ public class StudentController {
 	public List<TestContainer> getTestQuestions(@PathVariable("testId") int testId){
 		Test t = tRepo.getByTestId(testId);
 		boolean timeCheck = true;
-		//timeCheck = testTime(t.getScheduleOn(), t.getDuration());
+		timeCheck = testTime(t.getScheduleOn(), t.getDuration());
 		if(timeCheck) {
 			List<TestContainer> test;
 			if(t.getIsSubjective()) {
@@ -194,6 +192,22 @@ public class StudentController {
 			System.out.println(e.getMessage());
 			return false;
 		}
+	}
+	
+	@GetMapping("/student_tests/past/{rollNo}")
+	public List<ScheduledTests> getStudentPastTests(@PathVariable("rollNo") String rollNo){
+		Student student = sRepo.getByRollNo(rollNo);
+		List<Test> tests = tRepo.getBySBS(student.getSem(), student.getBranch(), student.getSection());
+		
+		List<ScheduledTests> s = new ArrayList<>();
+		for(Test t : tests) {
+			if(!isSchecduledTest(t.getScheduleOn(), t.getDuration()) || mAnsRepo.existsByRollNoAndTestId(rollNo, t.getTestId()) || sAnsRepo.existsByRollNoAndTestId(rollNo, t.getTestId()) ) {
+				ScheduledTests st = new ScheduledTests(t.getTestId(), t.getTitle(), t.getSubjectCode(), t.getIsSubjective(),  t.getResultOn());
+				s.add(st);
+			}
+		}
+		
+		return s;
 	}
 	
 }
