@@ -15,4 +15,5 @@ public interface MCQAnswerRepo extends JpaRepository<MCQAnswer, AnswerId> {
 	
 	@Query(value = "select t.question_id as questionId, t.question, t.option1, t.option2, t.option3, t.option4, t.correct_option as correctOption, a.answer from mcq_test t inner join mcq_answer a on t.question_id = a.question_id where a.test_id = :testId and a.roll_no = :rollNo", nativeQuery = true)
 	List<MCQData> getAnswers(@Param("testId") int testId, @Param("rollNo") String rollNo);
+	
 }

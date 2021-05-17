@@ -6,7 +6,11 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.persistence.EntityNotFoundException;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,6 +19,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.anshul.examportal.admin.ChangePassword;
 import com.anshul.examportal.test.PastTests;
 import com.anshul.examportal.test.ScheduledTests;
 import com.anshul.examportal.test.Test;
@@ -61,11 +66,12 @@ public class StudentController {
 		List<String> list = new ArrayList<>(2);
 		list.add("STUDENT");
 		
-		Student student = sRepo.getByEmail(s.getEmail());
+		Student student = sRepo.getOneByEmail(s.getEmail());
 		if(student!=null) {
 			if(passwordEcorder.matches(s.getPassword(), student.getPassword())) {
 				list.add(student.getName());
 				list.add(student.getRollNo());
+				list.add(student.getEmail());
 				return list;
 			}
 		}
@@ -74,9 +80,27 @@ public class StudentController {
 		return list;
 	}
 	
+	@PostMapping(path="/change_password/STUDENT", consumes= {"application/json"})
+	public ResponseEntity<String> changePassword(@RequestBody ChangePassword a){
+		try {
+			Student student = sRepo.getOneByEmail(a.getEmail());
+			if(passwordEcorder.matches(a.getPassword(), student.getPassword())) {
+				student.setPassword(passwordEcorder.encode(a.getNewPassword()));
+				sRepo.save(student);
+				return new ResponseEntity<>("Password Changed Successfully", HttpStatus.OK);
+			}else {
+				return new ResponseEntity<>("Incorrect Password", HttpStatus.UNAUTHORIZED);
+			}
+		}catch(EntityNotFoundException e) {
+			return new ResponseEntity<>("Incorrect Email", HttpStatus.UNAUTHORIZED);
+		}catch(Exception e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
 	@GetMapping("/student_tests/{rollNo}")
 	public List<ScheduledTests> getStudentTests(@PathVariable("rollNo") String rollNo){
-		Student student = sRepo.getByRollNo(rollNo);
+		Student student = sRepo.getOne(rollNo);
 		List<Test> tests = tRepo.getUpComingTestsBySBS(student.getSem(), student.getBranch(), student.getSection());
 		
 		List<ScheduledTests> s = new ArrayList<>();
@@ -116,7 +140,7 @@ public class StudentController {
 		}
 	}
 	
-	@PostMapping("/student/authenticate_test")
+	@PostMapping(path="/student/authenticate_test", consumes= {"application/json"})
 	public List<Boolean> checkTest(@RequestBody Test t) throws ParseException {
 		Test test = tRepo.getByTestId(t.getTestId());
 		
@@ -175,7 +199,7 @@ public class StudentController {
 		}
 	}
 	
-	@PostMapping("/test/mcq_answer")
+	@PostMapping(path="/test/mcq_answer", consumes= {"application/json"})
 	public boolean submitMCQTest(@RequestBody List<MCQAnswer> answers) {
 		try {
 			mAnsRepo.saveAll(answers);
@@ -186,7 +210,7 @@ public class StudentController {
 		}
 	}
 	
-	@PostMapping("/test/sub_answer")
+	@PostMapping(path="/test/sub_answer", consumes= {"application/json"})
 	public boolean submitSubTest(@RequestBody List<SubjectiveAnswer> answers) {
 		try {
 			sAnsRepo.saveAll(answers);
@@ -199,7 +223,7 @@ public class StudentController {
 	
 	@GetMapping("/student_tests/past/{rollNo}")
 	public List<PastTests> getStudentPastTests(@PathVariable("rollNo") String rollNo){
-		Student student = sRepo.getByRollNo(rollNo);
+		Student student = sRepo.getOne(rollNo);
 		List<Test> tests = tRepo.getPastTestsBySBS(student.getSem(), student.getBranch(), student.getSection());
 		
 		List<PastTests> pTests = new ArrayList<>();

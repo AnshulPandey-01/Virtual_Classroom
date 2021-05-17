@@ -3,7 +3,11 @@ package com.anshul.examportal.faculty;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.persistence.EntityNotFoundException;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,6 +16,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.anshul.examportal.admin.ChangePassword;
+import com.anshul.examportal.test.PastTests;
 import com.anshul.examportal.test.Test;
 import com.anshul.examportal.test.TestRepo;
 import com.anshul.examportal.test.mcq.MCQTest;
@@ -37,26 +43,54 @@ public class FacultyController {
 	
 	
 	@PostMapping(path="faculty_login", consumes= {"application/json"})
-	public List<String> checkFacultyLogin(@RequestBody Faculty f) {
-		
-		List<String> list = new ArrayList<>(2);
+	public ResponseEntity<List<String>> checkFacultyLogin(@RequestBody Faculty f) {
+		List<String> list = new ArrayList<>();
 		list.add("FACULTY");
-		
-		Faculty faculty = fRepo.getByEmail(f.getEmail());
-		if(faculty!=null) {
-			if(passwordEcorder.matches(f.getPassword(), faculty.getPassword())) {
-				list.add(faculty.getName());
-				return list;
+		try {
+			Faculty faculty = fRepo.getOne(f.getEmail());
+			if(faculty.getIsAllowed()) {
+				if(passwordEcorder.matches(f.getPassword(), faculty.getPassword())) {
+					list.add(faculty.getName());
+					list.add(faculty.getEmail());
+					return new ResponseEntity<>(list, HttpStatus.OK);
+				}else {
+					list.add("Incorrect Password");
+					return new ResponseEntity<>(list, HttpStatus.UNAUTHORIZED);
+				}
+			}else {
+				list.add("Your access is disabled");
+				return new ResponseEntity<>(list, HttpStatus.UNAUTHORIZED);
 			}
+		}catch(EntityNotFoundException e) {
+			list.add("Incorrect Email");
+			return new ResponseEntity<>(list, HttpStatus.UNAUTHORIZED);
+		}catch(Exception e) {
+			list.add(e.getMessage());
+			return new ResponseEntity<>(list, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
-		
-		list.add("false");
-		return list;
+	}
+	
+	@PostMapping(path="/change_password/FACULTY", consumes= {"application/json"})
+	public ResponseEntity<String> changePassword(@RequestBody ChangePassword a){
+		try {
+			Faculty faculty = fRepo.getOneByEmail(a.getEmail());
+			if(passwordEcorder.matches(a.getPassword(), faculty.getPassword())) {
+				faculty.setPassword(passwordEcorder.encode(a.getNewPassword()));
+				fRepo.save(faculty);
+				return new ResponseEntity<>("Password Changed Successfully", HttpStatus.OK);
+			}else {
+				return new ResponseEntity<>("Incorrect Password", HttpStatus.UNAUTHORIZED);
+			}
+		}catch(EntityNotFoundException e) {
+			return new ResponseEntity<>("Incorrect Email", HttpStatus.UNAUTHORIZED);
+		}catch(Exception e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
 	
 	@GetMapping("/tests/{faculty}")
 	public List<Test> getTests(@PathVariable("faculty") String name){
-		List<Test> list = tRepo.findByCreatedBy(name);
+		List<Test> list = tRepo.getScheduledTestsByFaculty(name);
 		return list;
 	}
 	
@@ -97,6 +131,16 @@ public class FacultyController {
 			System.out.println(e.getMessage());
 			return false;
 		}
+	}
+	
+	@GetMapping("/tests/past/{faculty}")
+	public List<PastTests> getFacultyPastTests(@PathVariable("faculty") String name){
+		List<Test> list = tRepo.getPastTestsByFaculty(name);
+		List<PastTests> pTests = new ArrayList<>();
+		for(Test t : list)
+			pTests.add(new PastTests(t.getTestId(), t.getTitle(), t.getSubjectCode(), t.getIsSubjective(), t.getResultOn()));
+		
+		return pTests;
 	}
 	
 }

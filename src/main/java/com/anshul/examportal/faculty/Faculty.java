@@ -1,5 +1,6 @@
 package com.anshul.examportal.faculty;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
@@ -10,6 +11,8 @@ public class Faculty {
 	private String email;
 	private String name;
 	private String password;
+	@Column(name="is_allowed")
+	private boolean isAllowed;
 	
 	public Faculty() {}
 
@@ -41,6 +44,14 @@ public class Faculty {
 
 	public void setPassword(String password) {
 		this.password = password;
+	}
+
+	public boolean getIsAllowed() {
+		return isAllowed;
+	}
+
+	public void setIsAllowed(boolean isAllowed) {
+		this.isAllowed = isAllowed;
 	}
 	
 }

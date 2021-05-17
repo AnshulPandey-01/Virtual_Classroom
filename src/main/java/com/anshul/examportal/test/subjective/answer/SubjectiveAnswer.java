@@ -24,7 +24,7 @@ public class SubjectiveAnswer {
 	
 	private String answer;
 	
-	int score;
+	private int score = -1;
 	
 	public SubjectiveAnswer() {}
 

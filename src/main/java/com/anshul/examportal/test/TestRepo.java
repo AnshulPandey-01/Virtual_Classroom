@@ -12,7 +12,11 @@ public interface TestRepo extends JpaRepository<Test, Integer> {
 	@Query("from Test where test_id= :testId")
 	Test getByTestId(@Param("testId") int testId);
 	
-	List<Test> findByCreatedBy(String created_by);
+	@Query(value = "select * from Test where DATE_ADD(schedule_on, INTERVAL duration MINUTE) > NOW() and created_by = :createdBy order by schedule_on asc", nativeQuery = true)
+	List<Test> getScheduledTestsByFaculty(String createdBy);
+	
+	@Query(value = "select * from Test where DATE_ADD(schedule_on, INTERVAL duration MINUTE) < NOW() and created_by = :createdBy order by ABS(DATEDIFF(result_on, NOW()))", nativeQuery = true)
+	List<Test> getPastTestsByFaculty(String createdBy);
 	
 	@Query(value = "select * from Test where DATE_ADD(schedule_on, INTERVAL duration MINUTE) > NOW() and sem= :sem and branch= :branch and section= :section order by schedule_on asc", nativeQuery = true)
 	List<Test> getUpComingTestsBySBS(@Param("sem") int sem, @Param("branch") String branch, @Param("section") String section);

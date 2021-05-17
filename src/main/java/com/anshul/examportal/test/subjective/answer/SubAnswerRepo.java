@@ -15,4 +15,5 @@ public interface SubAnswerRepo extends JpaRepository<SubjectiveAnswer, AnswerId>
 	
 	@Query(value = "select t.question_id as questionId, t.question, t.marks, a.answer, a.score from subjective_test t inner join subjective_answer a on t.question_id = a.question_id where a.test_id = :testId and a.roll_no = :rollNo", nativeQuery = true)
 	List<SubjectiveData> getAnswers(@Param("testId") int testId, @Param("rollNo") String rollNo);
+	
 }

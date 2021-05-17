@@ -9,12 +9,16 @@ public class PastTests {
 	private String resultOn;
 	private boolean isPresent;
 	
-	public PastTests(int testId, String title, String subjectCode, boolean isSubjective, String resultOn, boolean isPresent) {
+	public PastTests(int testId, String title, String subjectCode, boolean isSubjective, String resultOn) {
 		this.testId = testId;
 		this.title = title;
 		this.subjectCode = subjectCode;
 		this.isSubjective = isSubjective;
 		this.resultOn = resultOn;
+	}
+	
+	public PastTests(int testId, String title, String subjectCode, boolean isSubjective, String resultOn, boolean isPresent) {
+		this(testId, title, subjectCode, isSubjective, resultOn);
 		this.isPresent = isPresent;
 	}
 
