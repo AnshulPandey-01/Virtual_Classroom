@@ -57,5 +57,11 @@ public class MCQAnswer {
 	public void setAnswer(String answer) {
 		this.answer = answer;
 	}
+
+	@Override
+	public String toString() {
+		return "MCQAnswer [rollNo=" + rollNo + ", testId=" + testId + ", questionId=" + questionId + ", answer="
+				+ answer + "]";
+	}
 	
 }

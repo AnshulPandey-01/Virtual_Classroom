@@ -12,7 +12,7 @@ public class Faculty {
 	private String name;
 	private String password;
 	@Column(name="is_allowed")
-	private boolean isAllowed;
+	private boolean isAllowed = true;
 	
 	public Faculty() {}
 

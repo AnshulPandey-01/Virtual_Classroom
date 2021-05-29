@@ -61,40 +61,51 @@ public class StudentController {
 	
 	
 	@PostMapping(path="student_login", consumes= {"application/json"})
-	public List<String> checkStudentLogin(@RequestBody Student s) {
-		
-		List<String> list = new ArrayList<>(2);
+	public ResponseEntity<List<String>> checkStudentLogin(@RequestBody Student s) {
+		List<String> list = new ArrayList<>();
 		list.add("STUDENT");
-		
-		Student student = sRepo.getOneByEmail(s.getEmail());
-		if(student!=null) {
-			if(passwordEcorder.matches(s.getPassword(), student.getPassword())) {
-				list.add(student.getName());
-				list.add(student.getRollNo());
-				list.add(student.getEmail());
-				return list;
-			}
-		}
-		
 		list.add("false");
-		return list;
+		
+		try {
+			Student student = sRepo.getOneByEmail(s.getEmail());
+			if(passwordEcorder.matches(s.getPassword(), student.getPassword())) {
+				list.set(1, student.getName());
+				list.add(student.getEmail());
+				list.add(student.getRollNo());
+				return new ResponseEntity<>(list, HttpStatus.OK);
+			}else {
+				list.add("Incorrect Password");
+				return new ResponseEntity<>(list, HttpStatus.UNAUTHORIZED);
+			}
+		}catch(EntityNotFoundException e) {
+			list.add("Incorrect Email");
+			return new ResponseEntity<>(list, HttpStatus.UNAUTHORIZED);
+		}catch(Exception e) {
+			list.add(e.getMessage());
+			return new ResponseEntity<>(list, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
 	
 	@PostMapping(path="/change_password/STUDENT", consumes= {"application/json"})
-	public ResponseEntity<String> changePassword(@RequestBody ChangePassword a){
+	public ResponseEntity<List<String>> changePassword(@RequestBody ChangePassword a){
+		List<String> list = new ArrayList<>();
 		try {
 			Student student = sRepo.getOneByEmail(a.getEmail());
 			if(passwordEcorder.matches(a.getPassword(), student.getPassword())) {
 				student.setPassword(passwordEcorder.encode(a.getNewPassword()));
 				sRepo.save(student);
-				return new ResponseEntity<>("Password Changed Successfully", HttpStatus.OK);
+				list.add("Password Changed Successfully");
+				return new ResponseEntity<>(list, HttpStatus.OK);
 			}else {
-				return new ResponseEntity<>("Incorrect Password", HttpStatus.UNAUTHORIZED);
+				list.add("Incorrect Password");
+				return new ResponseEntity<>(list, HttpStatus.UNAUTHORIZED);
 			}
 		}catch(EntityNotFoundException e) {
-			return new ResponseEntity<>("Incorrect Email", HttpStatus.UNAUTHORIZED);
+			list.add("Incorrect Email");
+			return new ResponseEntity<>(list, HttpStatus.UNAUTHORIZED);
 		}catch(Exception e) {
-			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+			list.add(e.getMessage());
+			return new ResponseEntity<>(list, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
@@ -105,7 +116,7 @@ public class StudentController {
 		
 		List<ScheduledTests> s = new ArrayList<>();
 		for(Test t : tests) {
-			if(!testTime(t.getScheduleOn(), t.getDuration()) && !( sAnsRepo.existsByRollNoAndTestId(rollNo, t.getTestId()) || mAnsRepo.existsByRollNoAndTestId(rollNo, t.getTestId()) ) ) {
+			if(! (sAnsRepo.existsByRollNoAndTestId(rollNo, t.getTestId()) || mAnsRepo.existsByRollNoAndTestId(rollNo, t.getTestId())) ) {
 				ScheduledTests st = new ScheduledTests(t.getTestId(), t.getTitle(), t.getSubjectCode(), t.getIsSubjective(), t.getDuration(), t.getScheduleOn(), t.getResultOn(), t.getNegativeMarks());
 				
 				if(t.getIsSubjective()) {
@@ -123,7 +134,7 @@ public class StudentController {
 		return s;
 	}
 	
-	private boolean isSchecduledTest(String dateTime, int duration){
+	private boolean testTimeCheck(String dateTime, int duration){
 		try {
 			//System.out.println(dateTime + " | " + duration);
 			
@@ -142,17 +153,21 @@ public class StudentController {
 	
 	@PostMapping(path="/student/authenticate_test", consumes= {"application/json"})
 	public List<Boolean> checkTest(@RequestBody Test t) throws ParseException {
-		Test test = tRepo.getByTestId(t.getTestId());
-		
 		List<Boolean> list = new ArrayList<>();
-		boolean checkTime = true;
-		//checkTime = testTime(test.getScheduleOn(), test.getDuration());
-		
-		if(test!=null && test.getPassword().equals(t.getPassword()) && checkTime) {
-			list.add(true);
-			list.add(test.getIsSubjective());
-			return list;
-		}else {
+		try {
+			Test test = tRepo.getOne(t.getTestId());
+			
+			if(test.getPassword().equals(t.getPassword()) && checkTestTime(test.getScheduleOn(), test.getDuration())) {
+				list.add(true);
+				list.add(test.getIsSubjective());
+				return list;
+			}else {
+				list.add(false);
+				list.add(null);
+				return list;
+			}
+		}catch(Exception e) {
+			System.out.println(e.getMessage());
 			list.add(false);
 			list.add(null);
 			return list;
@@ -162,9 +177,8 @@ public class StudentController {
 	@GetMapping("/Test/{testId}")
 	public List<TestContainer> getTestQuestions(@PathVariable("testId") int testId){
 		Test t = tRepo.getByTestId(testId);
-		boolean timeCheck = true;
-		//timeCheck = testTime(t.getScheduleOn(), t.getDuration());
-		if(timeCheck) {
+		
+		if(checkTestTime(t.getScheduleOn(), t.getDuration())) {
 			List<TestContainer> test;
 			if(t.getIsSubjective()) {
 				test = subRepo.findByTestId(testId);
@@ -182,7 +196,7 @@ public class StudentController {
 		return null;
 	}
 	
-	private boolean testTime(String dateTime, int duration){
+	private boolean checkTestTime(String dateTime, int duration){
 		try {
 			//System.out.println(dateTime + " | " + duration);
 			
@@ -231,7 +245,7 @@ public class StudentController {
 			if(mAnsRepo.existsByRollNoAndTestId(rollNo, t.getTestId()) || sAnsRepo.existsByRollNoAndTestId(rollNo, t.getTestId())) {
 				PastTests pt = new PastTests(t.getTestId(), t.getTitle(), t.getSubjectCode(), t.getIsSubjective(),  t.getResultOn(), true);
 				pTests.add(pt);
-			}else if(!isSchecduledTest(t.getScheduleOn(), t.getDuration())) {
+			}else if(!testTimeCheck(t.getScheduleOn(), t.getDuration())) {
 				PastTests pt = new PastTests(t.getTestId(), t.getTitle(), t.getSubjectCode(), t.getIsSubjective(),  t.getResultOn(), false);
 				pTests.add(pt);
 			}
@@ -243,33 +257,37 @@ public class StudentController {
 	@GetMapping("/test/{rollNo}/{testId}")
 	public TestInfo getTestResult(@PathVariable("rollNo") String rollNo, @PathVariable("testId") int testId){
 		Test t = tRepo.getByTestId(testId);
-		TestInfo info;
+		TestInfo info = null;
 		
-		if(t.getIsSubjective()) {
-			TestDetails td = subRepo.getNoOfQuestionsAndMaxMarks(testId);
-			info = new TestInfo(t.getTitle(), t.getCreatedBy(), t.getSubjectCode(), t.getScheduleOn(), t.getDuration(), td.getNoOfQuestions(), td.getTotalMarks(), -1);
-			
-			List<SubjectiveData> ansList = sAnsRepo.getAnswers(testId, rollNo);
-			int total = 0;
-			for(int i = 0; i<ansList.size(); i++) {
-				total += ansList.get(i).getScore();
-				info.ansData.add(ansList.get(i));
+		if(!testTimeCheck(t.getResultOn(), 0)) {
+			if(t.getIsSubjective()) {
+				TestDetails td = subRepo.getNoOfQuestionsAndMaxMarks(testId);
+				info = new TestInfo(t.getTitle(), t.getCreatedBy(), t.getSubjectCode(), t.getScheduleOn(), t.getDuration(), td.getNoOfQuestions(), td.getTotalMarks(), -1);
+				
+				List<SubjectiveData> ansList = sAnsRepo.getAnswers(testId, rollNo);
+				int total = 0;
+				for(int i = 0; i<ansList.size(); i++) {
+					total += ansList.get(i).getScore();
+					info.ansData.add(ansList.get(i));
+				}
+				
+				info.setTotalMarks(total);
+			}else {
+				int totalQuestions = mcqRepo.getNoOfQuestions(testId);
+				info = new TestInfo(t.getTitle(), t.getCreatedBy(), t.getSubjectCode(), t.getScheduleOn(), t.getDuration(), totalQuestions, t.getMarks() * totalQuestions, t.getNegativeMarks());
+				List<MCQData> ansList = mAnsRepo.getAnswers(testId, rollNo);
+				
+				int total = 0;
+				for(int i = 0; i<ansList.size(); i++) {
+					info.ansData.add(ansList.get(i));
+					if(ansList.get(i).getCorrectOption().equals(ansList.get(i).getAnswer()))
+						total += t.getMarks();
+					else if(ansList.get(i).getAnswer()!=null)
+						total -= t.getNegativeMarks();
+				}
+				
+				info.setTotalMarks(total);
 			}
-			
-			info.setTotalMarks(total);
-		}else {
-			int totalQuestions = mcqRepo.getNoOfQuestions(testId);
-			info = new TestInfo(t.getTitle(), t.getCreatedBy(), t.getSubjectCode(), t.getScheduleOn(), t.getDuration(), totalQuestions, t.getMarks() * totalQuestions, t.getNegativeMarks());
-			List<MCQData> ansList = mAnsRepo.getAnswers(testId, rollNo);
-			
-			int total = 0;
-			for(int i = 0; i<ansList.size(); i++) {
-				info.ansData.add(ansList.get(i));
-				if(ansList.get(i).getCorrectOption().equals(ansList.get(i).getAnswer()))
-					total += t.getMarks();
-			}
-			
-			info.setTotalMarks(total);
 		}
 		
 		return info;

@@ -1,13 +1,17 @@
 package com.anshul.examportal.admin;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
 @Entity
 public class Admin {
+    
 	@Id
 	private String user_email;
+	@Column(unique = true, nullable = false)
 	private String user_name;
+	@Column(nullable = false)
 	private String password;
 	
 	public Admin() {}
