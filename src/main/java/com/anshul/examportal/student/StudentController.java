@@ -5,6 +5,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.persistence.EntityNotFoundException;
 
@@ -19,7 +20,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.anshul.examportal.admin.ChangePassword;
 import com.anshul.examportal.test.PastTests;
 import com.anshul.examportal.test.ScheduledTests;
 import com.anshul.examportal.test.Test;
@@ -87,12 +87,12 @@ public class StudentController {
 	}
 	
 	@PostMapping(path="/change_password/STUDENT", consumes= {"application/json"})
-	public ResponseEntity<List<String>> changePassword(@RequestBody ChangePassword a){
+	public ResponseEntity<List<String>> changePassword(@RequestBody Map<?, ?> a){
 		List<String> list = new ArrayList<>();
 		try {
-			Student student = sRepo.getOneByEmail(a.getEmail());
-			if(passwordEcorder.matches(a.getPassword(), student.getPassword())) {
-				student.setPassword(passwordEcorder.encode(a.getNewPassword()));
+			Student student = sRepo.getOne((String)a.get("email"));
+			if(passwordEcorder.matches((String)a.get("password"), student.getPassword())) {
+				student.setPassword(passwordEcorder.encode((String)a.get("newPassword")));
 				sRepo.save(student);
 				list.add("Password Changed Successfully");
 				return new ResponseEntity<>(list, HttpStatus.OK);

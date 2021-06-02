@@ -14,6 +14,8 @@ public interface SubAnswerRepo extends JpaRepository<SubjectiveAnswer, AnswerId>
 
 	boolean existsByRollNoAndTestId(String rollNo, int testId);
 	
+	List<SubjectiveAnswer> findByRollNoAndTestId(String rollNo, int testId);
+	
 	@Query(value = "select s.roll_no as rollNo, s.name, t.score from Subjective_Answer t inner join Student s on s.roll_no = t.roll_no where test_id= :testId order by t.roll_no", nativeQuery = true)
 	List<SubTestResult> getTestResult(@Param("testId") int testId);
 	

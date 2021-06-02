@@ -2,6 +2,7 @@ package com.anshul.examportal.admin;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.persistence.EntityNotFoundException;
 
@@ -73,12 +74,12 @@ public class Admin_Controller {
 	}
 	
 	@PostMapping(path="/change_password/ADMIN", consumes= {"application/json"})
-	public ResponseEntity<List<String>> changePassword(@RequestBody ChangePassword a){
+	public ResponseEntity<List<String>> changePassword(@RequestBody Map<?, ?> a){
 		List<String> list = new ArrayList<>();
 		try {
-			Admin admin = aRepo.getOne(a.getEmail());
-			if(passwordEcorder.matches(a.getPassword(), admin.getPassword())) {
-				admin.setPassword(passwordEcorder.encode(a.getNewPassword()));
+			Admin admin = aRepo.getOne((String)a.get("email"));
+			if(passwordEcorder.matches((String)a.get("password"), admin.getPassword())) {
+				admin.setPassword(passwordEcorder.encode((String)a.get("newPassword")));
 				aRepo.save(admin);
 				list.add("Password Changed Successfully");
 				return new ResponseEntity<>(list, HttpStatus.OK);
