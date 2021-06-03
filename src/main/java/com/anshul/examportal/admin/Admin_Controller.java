@@ -141,7 +141,7 @@ public class Admin_Controller {
 	public ResponseEntity<List<String>> addFaculty(@RequestBody Faculty f) {
 		List<String> list = new ArrayList<>();
 		
-		if(fRepo.existsById(f.getEmail()) || fRepo.existsByName(f.getName())) {
+		if(fRepo.checkFacultyExists(f.getName(), f.getEmail()) >= 1) {
 			list.add("Faculty already exists");
 			return new ResponseEntity<>(list, HttpStatus.CONFLICT);
 		}
@@ -150,6 +150,29 @@ public class Admin_Controller {
 			f.setPassword(passwordEcorder.encode(f.getPassword()));
 			fRepo.save(f);
 			list.add("Faculty added successfully");
+			return new ResponseEntity<>(list, HttpStatus.CREATED);
+		}catch(Exception e) {
+			list.add(e.getMessage());
+			return new ResponseEntity<>(list, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
+	@PostMapping(path="/add_faculties", consumes= {"application/json"})
+	public ResponseEntity<List<String>> addFaculties(@RequestBody List<Faculty> faculties) {
+		List<String> list = new ArrayList<>();
+		
+		for(Faculty f : faculties){
+			if(fRepo.checkFacultyExists(f.getName(), f.getEmail()) >= 1) {
+				list.add("Faculty with Email: " + f.getEmail() + " or Name: " + f.getName() + " already exists");
+				return new ResponseEntity<>(list, HttpStatus.CONFLICT);
+			}else {
+				f.setPassword(passwordEcorder.encode(f.getPassword()));
+			}
+		}
+		
+		try {
+			fRepo.saveAll(faculties);
+			list.add("Faculties added successfully");
 			return new ResponseEntity<>(list, HttpStatus.CREATED);
 		}catch(Exception e) {
 			list.add(e.getMessage());
@@ -192,7 +215,7 @@ public class Admin_Controller {
 	public ResponseEntity<List<String>> addStudent(@RequestBody Student s) {
 		List<String> list = new ArrayList<>();
 		
-		if(sRepo.existsById(s.getRollNo()) || sRepo.existsByEmail(s.getEmail())) {
+		if(sRepo.checkStudentExists(s.getRollNo(), s.getEmail()) >= 1) {
 			list.add("Student already exists");
 			return new ResponseEntity<>(list, HttpStatus.CONFLICT);
 		}
@@ -201,6 +224,29 @@ public class Admin_Controller {
 			s.setPassword(passwordEcorder.encode(s.getPassword()));
 			sRepo.save(s);
 			list.add("Student added successfully");
+			return new ResponseEntity<>(list, HttpStatus.CREATED);
+		}catch(Exception e) {
+			list.add(e.getMessage());
+			return new ResponseEntity<>(list, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
+	@PostMapping(path="/add_students", consumes= {"application/json"})
+	public ResponseEntity<List<String>> addStudents(@RequestBody List<Student> students) {
+		List<String> list = new ArrayList<>();
+		
+		for(Student s : students){
+			if(sRepo.checkStudentExists(s.getRollNo(), s.getEmail()) >= 1) {
+				list.add("Faculty with Email: " + s.getRollNo() + " or Name: " + s.getEmail() + " already exists");
+				return new ResponseEntity<>(list, HttpStatus.CONFLICT);
+			}else {
+				s.setPassword(passwordEcorder.encode(s.getPassword()));
+			}
+		}
+		
+		try {
+			sRepo.saveAll(students);
+			list.add("Students added successfully");
 			return new ResponseEntity<>(list, HttpStatus.CREATED);
 		}catch(Exception e) {
 			list.add(e.getMessage());

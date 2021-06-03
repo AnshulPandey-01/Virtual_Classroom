@@ -13,7 +13,8 @@ public interface StudentRepo extends JpaRepository<Student, String> {
 	
 	Student getOneByEmail(String email);
 	
-	boolean existsByEmail(String rollNo);
+	@Query(value = "select count(*) from student where roll_no= :rollNo or email= :email", nativeQuery = true)
+	int checkStudentExists(@Param("rollNo") String rollNo, @Param("email") String email);
 	
 	List<Student> findBySemAndBranchAndSection(int sem, String branch, String section);
 	

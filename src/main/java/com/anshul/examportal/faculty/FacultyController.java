@@ -29,7 +29,6 @@ import com.anshul.examportal.test.answer.MCQData;
 import com.anshul.examportal.test.answer.MCQTestResult;
 import com.anshul.examportal.test.answer.SubTestResult;
 import com.anshul.examportal.test.answer.SubjectiveData;
-import com.anshul.examportal.test.answer.TestResultInfo;
 import com.anshul.examportal.test.mcq.MCQTest;
 import com.anshul.examportal.test.mcq.MCQTestRepo;
 import com.anshul.examportal.test.mcq.answer.MCQAnswerRepo;
@@ -114,9 +113,14 @@ public class FacultyController {
 	}
 	
 	@GetMapping("/tests/{faculty}")
-	public List<Test> getTests(@PathVariable("faculty") String name){
-		List<Test> list = tRepo.getScheduledTestsByFaculty(name);
-		return list;
+	public ResponseEntity<List<Test>> getTests(@PathVariable("faculty") String name){
+		try {
+			List<Test> list = tRepo.getScheduledTestsByFaculty(name);
+			return new ResponseEntity<>(list, HttpStatus.OK);
+		}catch(Exception e) {
+			System.out.println(e.getMessage());
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
 	
 	@PostMapping(path="/create_test", consumes = {"application/json"})
@@ -131,30 +135,30 @@ public class FacultyController {
 	}
 	
 	@PostMapping(path="/create_mcq_test", consumes = {"application/json"})
-	public boolean addMCQTest(@RequestBody List<MCQTest> m_test) {
+	public ResponseEntity<?> addMCQTest(@RequestBody List<MCQTest> m_test) {
 		for(MCQTest mt : m_test) 
 			mt.setQuestionId(mt.getTestId() + "-" + mt.getQuestionId());
 		
 		try {
 			mcqRepo.saveAll(m_test);
-			return true;
+			return new ResponseEntity<>(HttpStatus.CREATED);
 		}catch (Exception e) {
 			System.out.println(e.getMessage());
-			return false;
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
 	@PostMapping(path="/create_sub_test", consumes = {"application/json"})
-	public boolean addSUBTest(@RequestBody List<SubjectiveTest> s_test) {
+	public ResponseEntity<?> addSUBTest(@RequestBody List<SubjectiveTest> s_test) {
 		for(SubjectiveTest st : s_test) 
 			st.setQuestionId(st.getTestId() + "-" + st.getQuestionId());
 		
 		try {
 			subRepo.saveAll(s_test);
-			return true;
+			return new ResponseEntity<>(HttpStatus.CREATED);
 		}catch (Exception e) {
 			System.out.println(e.getMessage());
-			return false;
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
@@ -169,37 +173,45 @@ public class FacultyController {
 	}
 	
 	@GetMapping("/faculty/past_tests/attendance/{testId}")
-	public List<TestResultInfo> getTestAttendance(@PathVariable("testId") int testId){
-		List<TestResultInfo> endResult = new ArrayList<>();
+	public ResponseEntity<List<Map<String, Object>>> getTestAttendance(@PathVariable("testId") int testId){
+		List<Map<String, Object>> endResult = new ArrayList<>();
 		
 		try {
 			Test test = tRepo.getOne(testId);
 			List<Student> list = sRepo.findBySemAndBranchAndSection(test.getSem(), test.getBranch(), test.getSection());
 			
-			Map<String, TestResultInfo> map = new HashMap<>();
+			Map<String, Map<String, Object>> map = new HashMap<>();
 			
 			if(test.getIsSubjective()) {
 				List<SubTestResult> results = subAnsRepo.getTestResult(testId);
 				
 				for(SubTestResult result : results) {
 					if(!map.containsKey(result.getRollNo())) {
-						map.put(result.getRollNo(), new TestResultInfo(result.getName(), result.getRollNo(), result.getScore(), true));
-					}else if(result.getScore()==-1 && map.get(result.getRollNo()).getScore()!=-1){
-						TestResultInfo trf = map.get(result.getRollNo());
-						trf.setScore(result.getScore());
-						map.put(result.getRollNo(), trf);
-					}else if(map.get(result.getRollNo()).getScore()!=-1) {
-						TestResultInfo trf = map.get(result.getRollNo());
-						trf.setScore(trf.getScore()+ result.getScore());
-						map.put(result.getRollNo(), trf);
+						Map<String, Object> temp = new HashMap<>();
+						temp.put("name", result.getName());
+						temp.put("rollNo", result.getRollNo());
+						temp.put("score", result.getScore());
+						temp.put("isPresent", true);
+						map.put(result.getRollNo(), temp);
+					}else if(result.getScore()==-1 && (int)map.get(result.getRollNo()).get("score")!=-1){
+						map.get(result.getRollNo()).put("score", result.getScore());
+					}else if((int)map.get(result.getRollNo()).get("score")!=-1) {
+						int prevScore = (int)map.get(result.getRollNo()).get("score");
+						map.get(result.getRollNo()).put("score", prevScore + result.getScore());
 					}
 				}
 				
 				for(Student s : list) {
 					if(map.containsKey(s.getRollNo()))
-						endResult.add((TestResultInfo)map.get(s.getRollNo()));
-					else
-						endResult.add(new TestResultInfo(s.getName(), s.getRollNo(), 0, false));
+						endResult.add(map.get(s.getRollNo()));
+					else {
+						Map<String, Object> temp = new HashMap<>();
+						temp.put("name", s.getName());
+						temp.put("rollNo", s.getRollNo());
+						temp.put("score", 0);
+						temp.put("isPresent", false);
+						endResult.add(temp);
+					}
 				}
 				
 			}else {
@@ -208,36 +220,50 @@ public class FacultyController {
 				for(MCQTestResult result : results) {
 					if(!map.containsKey(result.getRollNo())) {
 						int score = result.getCorrectOption().equals(result.getAnswer()) ? test.getMarks() : test.getNegativeMarks();
-						map.put(result.getRollNo(), new TestResultInfo(result.getName(), result.getRollNo(), score, true));
+						Map<String, Object> temp = new HashMap<>();
+						temp.put("name", result.getName());
+						temp.put("rollNo", result.getRollNo());
+						temp.put("score", score);
+						temp.put("isPresent", true);
+						map.put(result.getRollNo(), temp);
 					}else {
-						TestResultInfo trf = map.get(result.getRollNo());
-						int score = result.getCorrectOption().equals(result.getAnswer()) ? trf.getScore() + test.getMarks() : trf.getScore() - test.getNegativeMarks();
-						trf.setScore(score);
-						map.put(result.getRollNo(), trf);
+						int prevScore = (int)map.get(result.getRollNo()).get("score");
+						int score = result.getCorrectOption().equals(result.getAnswer()) ? prevScore + test.getMarks() : prevScore - test.getNegativeMarks();
+						map.get(result.getRollNo()).put("score", score);
 					}
 				}
 				
 				for(Student s : list) {
 					if(map.containsKey(s.getRollNo()))
-						endResult.add((TestResultInfo)map.get(s.getRollNo()));
-					else
-						endResult.add(new TestResultInfo(s.getName(), s.getRollNo(), 0, false));
+						endResult.add(map.get(s.getRollNo()));
+					else {
+						Map<String, Object> temp = new HashMap<>();
+						temp.put("name", s.getName());
+						temp.put("rollNo", s.getRollNo());
+						temp.put("score", 0);
+						temp.put("isPresent", false);
+						endResult.add(temp);
+					}
 				}
 				
 			}
 			
-			return endResult;
+			return new ResponseEntity<>(endResult, HttpStatus.OK);
 		}catch(EntityNotFoundException e) {
-			System.out.println("Incorrect testId");
-			return null;
+			Map<String, Object> m = new HashMap<>();
+			m.put("Error", "Incorrect testId");
+			endResult.add(m);
+			return new ResponseEntity<>(endResult, HttpStatus.BAD_REQUEST);
 		}catch(Exception e) {
-			System.out.println(e.getMessage());
-			return null;
+			Map<String, Object> m = new HashMap<>();
+			m.put("Error", e.getMessage());
+			endResult.add(m);
+			return new ResponseEntity<>(endResult, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
 	@GetMapping("/faculty/past_tests/answer/{testId}/{rollNo}")
-	public Map<?, ?> getPastTestStudentAnswer(@PathVariable("testId") int testId, @PathVariable("rollNo") String rollNo){
+	public ResponseEntity<Map<?, ?>> getPastTestStudentAnswer(@PathVariable("testId") int testId, @PathVariable("rollNo") String rollNo){
 		Map<String, Object> map = new HashMap<>();
 		try {
 			Student student = sRepo.getOne(rollNo);
@@ -282,16 +308,18 @@ public class FacultyController {
 				map.put("totalMarks", totalMarks);
 			}
 			
-			return map;
+			return new ResponseEntity<>(map, HttpStatus.OK);
 		}catch(Exception e) {
 			System.out.println(e.getMessage());
 			map.put("error", e.getMessage());
-			return map;
+			return new ResponseEntity<>(map, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
 	@PostMapping(path="/faculty/past_tests/check/{testId}/{rollNo}", consumes = {"application/json"})
-	public ResponseEntity<String> markTheTest(@PathVariable("testId") int testId, @PathVariable("rollNo") String rollNo, @RequestBody List<SubjectiveAnswer> marksList) {
+	public ResponseEntity<List<String>> markTheTest(@PathVariable("testId") int testId, @PathVariable("rollNo") String rollNo, @RequestBody List<SubjectiveAnswer> marksList) {
+		List<String> list = new ArrayList<>();
+		
 		try {
 			List<SubjectiveAnswer> ansList = subAnsRepo.findByRollNoAndTestId(rollNo, testId);
 			
@@ -307,10 +335,12 @@ public class FacultyController {
 			List<SubjectiveAnswer> updatedList = new ArrayList<>(map.values());		
 			subAnsRepo.saveAll(updatedList);
 			
-			return new ResponseEntity<>("Updated Successfully", HttpStatus.OK);
+			list.add("Updated Successfully");
+			return new ResponseEntity<>(list, HttpStatus.OK);
 		}catch (Exception e) {
 			System.out.println(e.getMessage());
-			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+			list.add(e.getMessage());
+			return new ResponseEntity<>(list, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 }
