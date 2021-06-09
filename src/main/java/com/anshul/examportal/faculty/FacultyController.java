@@ -124,13 +124,15 @@ public class FacultyController {
 	}
 	
 	@PostMapping(path="/create_test", consumes = {"application/json"})
-	public int addTest(@RequestBody Test t) {
+	public ResponseEntity<?> addTest(@RequestBody Test t) {
+		Map<String, Object> m = new HashMap<>();
 		try{
 			Test test = tRepo.save(t);
-			return test.getTestId();
+			m.put("TestId", test.getTestId());
+			return new ResponseEntity<>(m, HttpStatus.CREATED);
 		}catch(Exception e){
-			System.out.println(e.getMessage());
-			return 0;
+			m.put("Error", e.getMessage());
+			return new ResponseEntity<>(m, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
@@ -139,12 +141,14 @@ public class FacultyController {
 		for(MCQTest mt : m_test) 
 			mt.setQuestionId(mt.getTestId() + "-" + mt.getQuestionId());
 		
+		Map<String, String> m = new HashMap<>();
 		try {
 			mcqRepo.saveAll(m_test);
-			return new ResponseEntity<>(HttpStatus.CREATED);
+			m.put("Message", "Created Successfully");
+			return new ResponseEntity<>(m, HttpStatus.CREATED);
 		}catch (Exception e) {
-			System.out.println(e.getMessage());
-			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+			m.put("Error", e.getMessage());
+			return new ResponseEntity<>(m, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
@@ -153,12 +157,14 @@ public class FacultyController {
 		for(SubjectiveTest st : s_test) 
 			st.setQuestionId(st.getTestId() + "-" + st.getQuestionId());
 		
+		Map<String, String> m = new HashMap<>();
 		try {
 			subRepo.saveAll(s_test);
-			return new ResponseEntity<>(HttpStatus.CREATED);
+			m.put("Message", "Created Successfully");
+			return new ResponseEntity<>(m, HttpStatus.CREATED);
 		}catch (Exception e) {
-			System.out.println(e.getMessage());
-			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+			m.put("Error", e.getMessage());
+			return new ResponseEntity<>(m, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	

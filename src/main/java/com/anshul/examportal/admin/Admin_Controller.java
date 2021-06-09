@@ -211,7 +211,7 @@ public class Admin_Controller {
 		}
 	}
 	
-	@PostMapping(path="add_student", consumes= {"application/json"})
+	@PostMapping(path="/add_student", consumes= {"application/json"})
 	public ResponseEntity<List<String>> addStudent(@RequestBody Student s) {
 		List<String> list = new ArrayList<>();
 		

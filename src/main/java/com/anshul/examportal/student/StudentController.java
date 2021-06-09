@@ -64,12 +64,14 @@ public class StudentController {
 	public ResponseEntity<List<String>> checkStudentLogin(@RequestBody Student s) {
 		List<String> list = new ArrayList<>();
 		list.add("STUDENT");
-		list.add("false");
 		
 		try {
 			Student student = sRepo.getOneByEmail(s.getEmail());
-			if(passwordEcorder.matches(s.getPassword(), student.getPassword())) {
-				list.set(1, student.getName());
+			if(student==null) {
+				list.add("Incorrect Email");
+				return new ResponseEntity<>(list, HttpStatus.UNAUTHORIZED);
+			}else if(passwordEcorder.matches(s.getPassword(), student.getPassword())) {
+				list.add(student.getName());
 				list.add(student.getEmail());
 				list.add(student.getRollNo());
 				return new ResponseEntity<>(list, HttpStatus.OK);
@@ -77,9 +79,6 @@ public class StudentController {
 				list.add("Incorrect Password");
 				return new ResponseEntity<>(list, HttpStatus.UNAUTHORIZED);
 			}
-		}catch(EntityNotFoundException e) {
-			list.add("Incorrect Email");
-			return new ResponseEntity<>(list, HttpStatus.UNAUTHORIZED);
 		}catch(Exception e) {
 			list.add(e.getMessage());
 			return new ResponseEntity<>(list, HttpStatus.INTERNAL_SERVER_ERROR);
