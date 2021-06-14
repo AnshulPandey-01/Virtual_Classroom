@@ -13,16 +13,25 @@ public class MCQTest implements TestContainer {
 	@Column(name = "question_id")
 	private String questionId;
 	
-	@Column(name = "test_id")
+	@Column(name = "test_id", nullable = false)
 	private int testId;
 	
+	@Column(nullable = false)
 	private String question;
+	
+	@Column(nullable = false)
 	private String option1;
+	
+	@Column(nullable = false)
 	private String option2;
+	
+	@Column(nullable = true)
 	private String option3;
+	
+	@Column(nullable = true)
 	private String option4;
 	
-	@Column(name = "correct_option")
+	@Column(name = "correct_option", nullable = false)
 	private String correctOption;
 	
 	public MCQTest() {}

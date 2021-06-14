@@ -12,18 +12,20 @@ import com.anshul.examportal.test.answer.AnswerId;
 public class SubjectiveAnswer {
 
 	@Id
-	@Column(name = "roll_no")
+	@Column(name = "roll_no", nullable = false)
 	private String rollNo;
 	
-	@Column(name = "test_id")
+	@Column(name = "test_id", nullable = false)
 	private int testId;
 	
 	@Id
-	@Column(name = "question_id")
+	@Column(name = "question_id", nullable = false)
 	private String questionId;
 	
+	@Column(nullable = true)
 	private String answer;
 	
+	@Column(nullable = false)
 	private int score = -1;
 	
 	public SubjectiveAnswer() {}

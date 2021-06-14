@@ -13,10 +13,13 @@ public class SubjectiveTest implements TestContainer {
 	@Column(name = "question_id")
 	private String questionId;
 
-	@Column(name = "test_id")
+	@Column(name = "test_id", nullable = false)
 	private int testId;
 	
+	@Column(nullable = false)
 	private String question;
+	
+	@Column(nullable = false)
 	private int marks;
 	
 	public SubjectiveTest() {}

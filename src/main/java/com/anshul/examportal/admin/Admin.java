@@ -9,8 +9,10 @@ public class Admin {
     
 	@Id
 	private String user_email;
+	
 	@Column(unique = true, nullable = false)
 	private String user_name;
+	
 	@Column(nullable = false)
 	private String password;
 	

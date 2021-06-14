@@ -1,6 +1,7 @@
 package com.anshul.examportal.student;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -109,7 +110,7 @@ public class StudentController {
 	}
 	
 	@GetMapping("/student_tests/{rollNo}")
-	public List<ScheduledTests> getStudentTests(@PathVariable("rollNo") String rollNo){
+	public ResponseEntity<List<ScheduledTests>> getStudentTests(@PathVariable("rollNo") String rollNo){
 		Student student = sRepo.getOne(rollNo);
 		List<Test> tests = tRepo.getUpComingTestsBySBS(student.getSem(), student.getBranch(), student.getSection());
 		
@@ -130,7 +131,7 @@ public class StudentController {
 			}
 		}
 		
-		return s;
+		return new ResponseEntity<>(s, HttpStatus.OK);
 	}
 	
 	private boolean testTimeCheck(String dateTime, int duration){
@@ -151,7 +152,7 @@ public class StudentController {
 	}
 	
 	@PostMapping(path="/student/authenticate_test", consumes= {"application/json"})
-	public List<Boolean> checkTest(@RequestBody Test t) throws ParseException {
+	public ResponseEntity<List<Boolean>> checkTest(@RequestBody Test t) throws ParseException {
 		List<Boolean> list = new ArrayList<>();
 		try {
 			Test test = tRepo.getOne(t.getTestId());
@@ -159,22 +160,22 @@ public class StudentController {
 			if(test.getPassword().equals(t.getPassword()) && checkTestTime(test.getScheduleOn(), test.getDuration())) {
 				list.add(true);
 				list.add(test.getIsSubjective());
-				return list;
+				return new ResponseEntity<>(list, HttpStatus.OK);
 			}else {
 				list.add(false);
 				list.add(null);
-				return list;
+				return new ResponseEntity<>(list, HttpStatus.FORBIDDEN);
 			}
 		}catch(Exception e) {
 			System.out.println(e.getMessage());
 			list.add(false);
 			list.add(null);
-			return list;
+			return new ResponseEntity<>(list, HttpStatus.BAD_REQUEST);
 		}
 	}
 	
 	@GetMapping("/Test/{testId}")
-	public List<TestContainer> getTestQuestions(@PathVariable("testId") int testId){
+	public ResponseEntity<List<TestContainer>> getTestQuestions(@PathVariable("testId") int testId){
 		Test t = tRepo.getByTestId(testId);
 		
 		if(checkTestTime(t.getScheduleOn(), t.getDuration())) {
@@ -189,10 +190,10 @@ public class StudentController {
 					test.set(i, mcq);
 				}
 			}
-			return test;
+			return new ResponseEntity<>(test, HttpStatus.OK);
 		}
 		
-		return null;
+		return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 	}
 	
 	private boolean checkTestTime(String dateTime, int duration){
@@ -213,48 +214,76 @@ public class StudentController {
 	}
 	
 	@PostMapping(path="/test/mcq_answer", consumes= {"application/json"})
-	public boolean submitMCQTest(@RequestBody List<MCQAnswer> answers) {
+	public ResponseEntity<List<Boolean>> submitMCQTest(@RequestBody List<MCQAnswer> answers) {
+		List<Boolean> list = new ArrayList<>();
 		try {
 			mAnsRepo.saveAll(answers);
-			return true;
+			list.add(true);
+			return new ResponseEntity<>(list, HttpStatus.OK);
 		}catch(Exception e) {
 			System.out.println(e.getMessage());
-			return false;
+			list.add(false);
+			return new ResponseEntity<>(list, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
 	@PostMapping(path="/test/sub_answer", consumes= {"application/json"})
-	public boolean submitSubTest(@RequestBody List<SubjectiveAnswer> answers) {
+	public ResponseEntity<List<Boolean>> submitSubTest(@RequestBody List<SubjectiveAnswer> answers) {
+		List<Boolean> list = new ArrayList<>();
 		try {
 			sAnsRepo.saveAll(answers);
-			return true;
+			list.add(true);
+			return new ResponseEntity<>(list, HttpStatus.OK);
 		}catch(Exception e) {
 			System.out.println(e.getMessage());
-			return false;
+			list.add(false);
+			return new ResponseEntity<>(list, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
 	@GetMapping("/student_tests/past/{rollNo}")
-	public List<PastTests> getStudentPastTests(@PathVariable("rollNo") String rollNo){
-		Student student = sRepo.getOne(rollNo);
-		List<Test> tests = tRepo.getPastTestsBySBS(student.getSem(), student.getBranch(), student.getSection());
-		
-		List<PastTests> pTests = new ArrayList<>();
-		for(Test t : tests) {
-			if(mAnsRepo.existsByRollNoAndTestId(rollNo, t.getTestId()) || sAnsRepo.existsByRollNoAndTestId(rollNo, t.getTestId())) {
-				PastTests pt = new PastTests(t.getTestId(), t.getTitle(), t.getSubjectCode(), t.getIsSubjective(),  t.getResultOn(), true);
-				pTests.add(pt);
-			}else if(!testTimeCheck(t.getScheduleOn(), t.getDuration())) {
-				PastTests pt = new PastTests(t.getTestId(), t.getTitle(), t.getSubjectCode(), t.getIsSubjective(),  t.getResultOn(), false);
-				pTests.add(pt);
+	public ResponseEntity<?> getStudentPastTests(@PathVariable("rollNo") String rollNo){
+		try {
+			Student student = sRepo.getOne(rollNo);
+			List<Test> tests = tRepo.getPastTestsBySBS(student.getSem(), student.getBranch(), student.getSection());
+			
+			List<PastTests> pTests = new ArrayList<>();
+			
+			for(Test t : tests) {
+				if(mAnsRepo.existsByRollNoAndTestId(rollNo, t.getTestId()) || sAnsRepo.existsByRollNoAndTestId(rollNo, t.getTestId())) {
+					PastTests pt = new PastTests(t.getTestId(), t.getTitle(), t.getSubjectCode(), t.getIsSubjective(),  t.getResultOn(), true);
+					pTests.add(pt);
+				}else if(!testTimeCheck(t.getScheduleOn(), t.getDuration())) {
+					PastTests pt = new PastTests(t.getTestId(), t.getTitle(), t.getSubjectCode(), t.getIsSubjective(),  t.getResultOn(), false);
+					pTests.add(pt);
+				}
 			}
+			
+			return new ResponseEntity<>(pTests, HttpStatus.OK);
+		}catch(Exception e) {
+			Map<String, String> m = new HashMap<>();
+			m.put("searchResult", "Student not found");
+			return new ResponseEntity<>(m, HttpStatus.NOT_FOUND);
+		}
+	}
+	
+	@GetMapping("/test/result_available/{testId}")
+	public ResponseEntity<List<Boolean>> isResultAvailable(@PathVariable("testId") int testId){
+		List<Boolean> list = new ArrayList<>();
+		
+		Test t = tRepo.getByTestId(testId);
+		if(t==null) {
+			list.add(null);
+			return new ResponseEntity<>(list, HttpStatus.NOT_FOUND);
 		}
 		
-		return pTests;
+		boolean isResultDeclared = !testTimeCheck(t.getResultOn(), 0);
+		list.add(isResultDeclared);
+		return new ResponseEntity<>(list, HttpStatus.OK);
 	}
 	
 	@GetMapping("/test/{rollNo}/{testId}")
-	public TestInfo getTestResult(@PathVariable("rollNo") String rollNo, @PathVariable("testId") int testId){
+	public ResponseEntity<TestInfo> getTestResult(@PathVariable("rollNo") String rollNo, @PathVariable("testId") int testId){
 		Test t = tRepo.getByTestId(testId);
 		TestInfo info = null;
 		
@@ -289,7 +318,7 @@ public class StudentController {
 			}
 		}
 		
-		return info;
+		return new ResponseEntity<>(info, HttpStatus.OK);
 	}
 	
 }

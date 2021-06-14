@@ -3,6 +3,7 @@ package com.anshul.examportal.student;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 
 @Entity
 public class Student {
@@ -10,11 +11,23 @@ public class Student {
 	@Id
 	@Column(name="roll_no")
 	private String rollNo;
+	
+	@Column(unique = true, nullable = false)
 	private String email;
+	
+	@Column(nullable = false)
 	private String name;
+	
+	@Column(nullable = false)
 	private String password;
+	
+	@Column(nullable = false)
 	private String branch;
+	
+	@Column(nullable = false)
 	private int sem;
+	
+	@Column(nullable = false)
 	private String section;
 	
 	public Student() {}

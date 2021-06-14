@@ -169,13 +169,13 @@ public class FacultyController {
 	}
 	
 	@GetMapping("/faculty/past_tests/{faculty}")
-	public List<PastTests> getFacultyPastTests(@PathVariable("faculty") String name){
+	public ResponseEntity<List<PastTests>> getFacultyPastTests(@PathVariable("faculty") String name){
 		List<Test> list = tRepo.getPastTestsByFaculty(name);
 		List<PastTests> pTests = new ArrayList<>();
 		for(Test t : list)
 			pTests.add(new PastTests(t.getTestId(), t.getTitle(), t.getSubjectCode(), t.getIsSubjective(), t.getResultOn()));
 		
-		return pTests;
+		return new ResponseEntity<>(pTests, HttpStatus.OK);
 	}
 	
 	@GetMapping("/faculty/past_tests/attendance/{testId}")
@@ -344,7 +344,6 @@ public class FacultyController {
 			list.add("Updated Successfully");
 			return new ResponseEntity<>(list, HttpStatus.OK);
 		}catch (Exception e) {
-			System.out.println(e.getMessage());
 			list.add(e.getMessage());
 			return new ResponseEntity<>(list, HttpStatus.INTERNAL_SERVER_ERROR);
 		}

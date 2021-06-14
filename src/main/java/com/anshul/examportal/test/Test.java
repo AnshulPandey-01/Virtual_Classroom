@@ -6,6 +6,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 
 @Entity
 public class Test {
@@ -15,31 +17,40 @@ public class Test {
 	@Column(name = "test_id")
 	private int testId;
 	
+	@Column(nullable = false)
 	private String title;
+	
+	@Column(nullable = false)
 	private String password;
 	
-	@Column(name = "is_subjective", columnDefinition="INT(1)")
+	@Column(name = "is_subjective", nullable = false, columnDefinition="INT(1)")
 	private boolean isSubjective;
-
+	
+	@Column(nullable = false)
 	private int duration; // duration in minutes
 	
-	@Column(name = "schedule_on")
+	@Column(name = "schedule_on", nullable = false)
 	private String scheduleOn;
 	
-	@Column(name = "result_on", nullable = true)
+	@Column(name = "result_on", nullable = false)
 	private String resultOn;
 	
-	@Column(name = "created_by")
+	@Column(name = "created_by", nullable = false)
 	private String createdBy;
 	
-	@Column(name = "subject_code")
+	@Column(name = "subject_code", nullable = false)
 	private String subjectCode;
 	
+	@Column(nullable = false)
 	private String branch;
+	
+	@Column(nullable = false)
 	private int sem;
+	
+	@Column(nullable = false)
 	private String section;
 	
-	@Column(name = "marks", nullable = true)
+	@Column(nullable = true)
 	private int marks;
 	
 	@Column(name = "negative_marks", nullable = true)

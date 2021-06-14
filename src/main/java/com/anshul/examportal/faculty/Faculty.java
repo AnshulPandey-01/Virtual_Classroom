@@ -3,15 +3,21 @@ package com.anshul.examportal.faculty;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 
 @Entity
 public class Faculty {
 
 	@Id
 	private String email;
+	
+	@Column(unique = true, nullable = false)
 	private String name;
+	
+	@Column(nullable = false)
 	private String password;
-	@Column(name="is_allowed")
+	
+	@Column(name="is_allowed", nullable = false)
 	private boolean isAllowed = true;
 	
 	public Faculty() {}
