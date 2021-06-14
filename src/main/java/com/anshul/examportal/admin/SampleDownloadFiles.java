@@ -22,7 +22,8 @@ public class SampleDownloadFiles {
 	@GetMapping("/download/{fileName}")
 	@ResponseBody
 	public ResponseEntity<Resource> downloadFile(@PathVariable("fileName") String fileName) {
-		File file = new File("D:\\Java Projects\\STS Projects\\exam_portal\\Excel_Sample_File\\" + fileName + ".xlsx");
+		String currentDirectory = System.getProperty("user.dir");
+		File file = new File(currentDirectory + "\\Excel_Sample_File\\" + fileName + ".xlsx");
 		
 		Path path = Paths.get(file.getAbsolutePath());
 		ByteArrayResource resource = null;
