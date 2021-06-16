@@ -23,7 +23,15 @@ public class SampleDownloadFiles {
 	@ResponseBody
 	public ResponseEntity<Resource> downloadFile(@PathVariable("fileName") String fileName) {
 		String currentDirectory = System.getProperty("user.dir");
-		File file = new File(currentDirectory + "\\Excel_Sample_File\\" + fileName + ".xlsx");
+		File file = new File(currentDirectory + "/Excel_Sample_File/" + fileName + ".xlsx");
+		
+		File directoryPath = new File(currentDirectory);
+		String contents[] = directoryPath.list();
+		
+		System.out.println("List of files and directories in the specified directory:");
+		for(int i=0; i<contents.length; i++) {
+			System.out.println(contents[i]);
+		}
 		
 		Path path = Paths.get(file.getAbsolutePath());
 		ByteArrayResource resource = null;

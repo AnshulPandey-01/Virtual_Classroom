@@ -24,7 +24,7 @@ import com.anshul.examportal.student.Student;
 import com.anshul.examportal.student.StudentRepo;
 
 
-@CrossOrigin//(origins ="http://localhost:4500")
+@CrossOrigin(origins ="https://angular-exam-portal.web.app")
 @RestController
 public class Admin_Controller {
 	

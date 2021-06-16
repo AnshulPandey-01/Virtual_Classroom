@@ -116,6 +116,12 @@ public class FacultyController {
 	public ResponseEntity<List<Test>> getTests(@PathVariable("faculty") String name){
 		try {
 			List<Test> list = tRepo.getScheduledTestsByFaculty(name);
+			
+			if(list==null) {
+				System.out.println("no current tests for faculty " + name);
+				return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+			}
+			
 			return new ResponseEntity<>(list, HttpStatus.OK);
 		}catch(Exception e) {
 			System.out.println(e.getMessage());
@@ -170,12 +176,23 @@ public class FacultyController {
 	
 	@GetMapping("/faculty/past_tests/{faculty}")
 	public ResponseEntity<List<PastTests>> getFacultyPastTests(@PathVariable("faculty") String name){
+		try {
 		List<Test> list = tRepo.getPastTestsByFaculty(name);
-		List<PastTests> pTests = new ArrayList<>();
-		for(Test t : list)
-			pTests.add(new PastTests(t.getTestId(), t.getTitle(), t.getSubjectCode(), t.getIsSubjective(), t.getResultOn()));
 		
-		return new ResponseEntity<>(pTests, HttpStatus.OK);
+			if(list==null) {
+				System.out.println("no past tests for faculty " + name);
+				return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+			}
+			
+			List<PastTests> pTests = new ArrayList<>();
+			for(Test t : list)
+				pTests.add(new PastTests(t.getTestId(), t.getTitle(), t.getSubjectCode(), t.getIsSubjective(), t.getResultOn()));
+			
+			return new ResponseEntity<>(pTests, HttpStatus.OK);
+		}catch(Exception e) {
+			System.out.println(e.getMessage());
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
 	
 	@GetMapping("/faculty/past_tests/attendance/{testId}")
