@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-@CrossOrigin//(origins ="http://localhost:4500")
+@CrossOrigin(origins ="https://angular-exam-portal.web.app")
 @Controller
 public class SampleDownloadFiles {
 	

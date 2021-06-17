@@ -39,7 +39,7 @@ import com.anshul.examportal.test.subjective.answer.SubAnswerRepo;
 import com.anshul.examportal.test.subjective.answer.SubjectiveAnswer;
 
 
-@CrossOrigin//(origins ="http://localhost:4500")
+@CrossOrigin(origins ="https://angular-exam-portal.web.app")
 @RestController
 public class StudentController {
 	

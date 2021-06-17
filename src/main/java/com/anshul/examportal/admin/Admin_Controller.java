@@ -37,7 +37,7 @@ public class Admin_Controller {
 	
 	private static BCryptPasswordEncoder passwordEcorder = new BCryptPasswordEncoder();
 	
-	
+	/*
 	@PostMapping(path="/add_admin", consumes= {"application/json"})
 	public ResponseEntity<String> addAdmin(@RequestBody Admin a) {
 		try {
@@ -48,6 +48,7 @@ public class Admin_Controller {
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
+	*/
 	
 	@PostMapping(path="/admin_login", consumes= {"application/json"})
 	public ResponseEntity<List<String>> checkAdminLogin(@RequestBody Admin a) {
