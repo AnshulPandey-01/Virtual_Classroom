@@ -1,19 +1,16 @@
 package com.anshul.examportal.test;
 
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.Table;
 
 @Entity
-@Table(name="test_table")
 public class Test {
 	
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "test_id")
 	private int testId;
 	
@@ -23,7 +20,7 @@ public class Test {
 	@Column(nullable = false)
 	private String password;
 	
-	@Column(name = "is_subjective", nullable = false, columnDefinition="INT(1)")
+	@Column(name = "is_subjective", nullable = false, columnDefinition="boolean")
 	private boolean isSubjective;
 	
 	@Column(nullable = false)
