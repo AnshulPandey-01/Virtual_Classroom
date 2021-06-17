@@ -14,7 +14,7 @@ public class Test {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "test_id")
+	@Column(name = "test_id", columnDefinition = "serial")
 	private int testId;
 	
 	@Column(nullable = false)
