@@ -13,8 +13,8 @@ import javax.persistence.Table;
 public class Test {
 	
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "test_id", columnDefinition = "serial")
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	@Column(name = "test_id")
 	private int testId;
 	
 	@Column(nullable = false)
