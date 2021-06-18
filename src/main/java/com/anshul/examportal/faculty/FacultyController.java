@@ -40,7 +40,7 @@ import com.anshul.examportal.test.subjective.answer.SubAnswerRepo;
 import com.anshul.examportal.test.subjective.answer.SubjectiveAnswer;
 
 
-@CrossOrigin(origins ="https://angular-exam-portal.web.app")
+@CrossOrigin//(origins ="https://angular-exam-portal.web.app")
 @RestController
 public class FacultyController {
 	
@@ -325,7 +325,7 @@ public class FacultyController {
 			
 			if(test.getIsSubjective()) {
 				Date currentDate = new Date(System.currentTimeMillis());
-				Date resultDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(test.getResultOn());
+				Date resultDate = new SimpleDateFormat("yyyy-MM-dd HH:mm").parse(test.getResultOn());
 				if(resultDate.after(currentDate))
 					map.put("isEditable", true);
 				else

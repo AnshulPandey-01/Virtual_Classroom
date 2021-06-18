@@ -24,7 +24,7 @@ import com.anshul.examportal.student.Student;
 import com.anshul.examportal.student.StudentRepo;
 
 
-@CrossOrigin(origins ="https://angular-exam-portal.web.app")
+@CrossOrigin//(origins ="https://angular-exam-portal.web.app")
 @RestController
 public class Admin_Controller {
 	
@@ -195,18 +195,16 @@ public class Admin_Controller {
 	}
 	
 	@DeleteMapping("/remove/student/{email}")
-	public ResponseEntity<List<Object>> deleteStudent(@PathVariable("email") String email) {
-		List<Object> list = new ArrayList<>();
+	public ResponseEntity<List<String>> deleteStudent(@PathVariable("email") String email) {
+		List<String> list = new ArrayList<>();
 		try {
 			Student s = sRepo.getOneByEmail(email);
 			sRepo.deleteFromMCQ(s.getRollNo());
 			sRepo.deleteFromSubjective(s.getRollNo());
 			sRepo.delete(s);
-			list.add(true);
 			list.add("Student record deleted successfully");
 			return new ResponseEntity<>(list, HttpStatus.OK);
 		}catch(Exception e) {
-			list.add(false);
 			list.add(e.getMessage());
 			return new ResponseEntity<>(list, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
