@@ -12,6 +12,8 @@ import javax.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -42,6 +44,8 @@ import com.anshul.examportal.test.subjective.answer.SubjectiveAnswer;
 @RestController
 public class FacultyController {
 	
+	private static BCryptPasswordEncoder passwordEcorder = new BCryptPasswordEncoder();
+	
 	@Autowired
 	private FacultyRepo fRepo;
 	@Autowired
@@ -56,8 +60,8 @@ public class FacultyController {
 	private MCQAnswerRepo mcqAnsRepo;
 	@Autowired
 	private SubAnswerRepo subAnsRepo;
-	
-	private static BCryptPasswordEncoder passwordEcorder = new BCryptPasswordEncoder();
+	@Autowired
+	private JavaMailSender mailSender;
 	
 	
 	@PostMapping(path="faculty_login", consumes= {"application/json"})
@@ -150,6 +154,7 @@ public class FacultyController {
 		Map<String, String> m = new HashMap<>();
 		try {
 			mcqRepo.saveAll(m_test);
+			sendMails(m_test.get(0).getTestId());
 			m.put("Message", "Created Successfully");
 			return new ResponseEntity<>(m, HttpStatus.CREATED);
 		}catch (Exception e) {
@@ -166,11 +171,31 @@ public class FacultyController {
 		Map<String, String> m = new HashMap<>();
 		try {
 			subRepo.saveAll(s_test);
+			sendMails(s_test.get(0).getTestId());
 			m.put("Message", "Created Successfully");
 			return new ResponseEntity<>(m, HttpStatus.CREATED);
 		}catch (Exception e) {
 			m.put("Error", e.getMessage());
 			return new ResponseEntity<>(m, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
+	private void sendMails(int testId) {
+		Test t = tRepo.getByTestId(testId);
+		String mailBody = "Title: " + t.getTitle() + "\n" +
+				"Schedule On: " + t.getScheduleOn() + "\n" +
+				"Test ID: " + t.getTestId() + "\n" + 
+				"Password: " + t.getPassword() + "\n";
+		
+		SimpleMailMessage mailMessage = new SimpleMailMessage();
+		mailMessage.setFrom("adgamesindia@gmail.com");
+		mailMessage.setSubject("New test from " + t.getCreatedBy());
+		mailMessage.setText(mailBody);
+		
+		List<Student> students = sRepo.findBySemAndBranchAndSection(t.getSem(), t.getBranch(), t.getSection());
+		for(Student s : students) {
+			mailMessage.setTo(s.getEmail());
+			mailSender.send(mailMessage);
 		}
 	}
 	

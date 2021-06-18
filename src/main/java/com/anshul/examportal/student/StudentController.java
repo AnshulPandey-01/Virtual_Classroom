@@ -138,7 +138,7 @@ public class StudentController {
 		try {
 			//System.out.println(dateTime + " | " + duration);
 			
-			Date scheduleTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(dateTime);
+			Date scheduleTime = new SimpleDateFormat("yyyy-MM-dd HH:mm").parse(dateTime);
 			Date endTime = new Date(scheduleTime.getTime() + duration * ONE_MINUTE_IN_MILLIS);
 			Date currentTime = new Date(System.currentTimeMillis());
 			
@@ -201,7 +201,7 @@ public class StudentController {
 			//System.out.println(dateTime + " | " + duration);
 			
 			Date currentDate = new Date(System.currentTimeMillis());
-			Date scheduleDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(dateTime);
+			Date scheduleDate = new SimpleDateFormat("yyyy-MM-dd HH:mm").parse(dateTime);
 			Date endDate = new Date(scheduleDate.getTime() + duration * ONE_MINUTE_IN_MILLIS);
 			
 			//System.out.println(currentDate + " | " + scheduleDate + " | " + endDate);
