@@ -30,7 +30,6 @@
 
 ### Requirements
 * Any operating system (i.e. Linux, Windows, MacOS X).
-* Some knowledge of Angular and Spring Boot will be a plus.
 * Spring Tool Suite(STS) and VS Code.
 
 ### To Run
@@ -38,7 +37,7 @@ Download all the technology used according to their versions
 
 * Clone the Angular project from <a href="https://github.com/rajendra786952/Online-Test">here</a>.
 * Open the project in VS Code and their in terminal type ``` npm i ```
-* Until it is downloading all the dependencies, clone this Spring Boot Project from <a href="https://github.com/AnshulPandey-01/exam_portal">here</a> and open it using STS and wait for maven to download all the dependencies.
+* Clone this Spring Boot Project from <a href="https://github.com/AnshulPandey-01/exam_portal">here</a> and open it using STS and wait for maven to download all the dependencies.
 * Now to run the angular project type ``` ng serve ```
 * Run spring boot project using STS.
 
@@ -61,9 +60,11 @@ Password: 123456
 **Use Case Diagram: <a href="https://app.creately.com/diagram/dNzC6k5bs2G/view">https://app.creately.com/diagram/dNzC6k5bs2G/view</a>**
 
 ## Collaborators
+**Anshul Pandey: <a href="https://github.com/AnshulPandey-01">https://github.com/AnshulPandey-01</a>**
 **Rajendra Chourasiya: <a href="https://github.com/rajendra786952">https://github.com/rajendra786952</a>**
 
-## Screenshoots
+## Screenshots
  ![Img_01](https://user-images.githubusercontent.com/55765572/123699779-454b3380-d87d-11eb-8d56-e3b9d091d77d.png)
  ![Img_02](https://user-images.githubusercontent.com/55765572/123699789-4714f700-d87d-11eb-8d00-bc6a23f49412.png)
  ![Img_03](https://user-images.githubusercontent.com/55765572/123699791-4714f700-d87d-11eb-9668-6bb24078d711.png)
+
