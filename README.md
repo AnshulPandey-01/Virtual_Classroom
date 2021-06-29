@@ -60,7 +60,7 @@ Password: 123456
 **Use Case Diagram: <a href="https://app.creately.com/diagram/dNzC6k5bs2G/view">https://app.creately.com/diagram/dNzC6k5bs2G/view</a>**
 
 ## Collaborators
-**Anshul Pandey: <a href="https://github.com/AnshulPandey-01">https://github.com/AnshulPandey-01</a>**
+**Anshul Pandey: <a href="https://github.com/AnshulPandey-01">https://github.com/AnshulPandey-01</a>**<br/>
 **Rajendra Chourasiya: <a href="https://github.com/rajendra786952">https://github.com/rajendra786952</a>**
 
 ## Screenshots
