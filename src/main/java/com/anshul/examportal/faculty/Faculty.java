@@ -3,7 +3,6 @@ package com.anshul.examportal.faculty;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
 
 @Entity
 public class Faculty {
