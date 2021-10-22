@@ -25,6 +25,12 @@ public interface SubjectiveAnswerRepo extends JpaRepository<SubjectiveAnswer, An
 	List<SubjectiveTestData> getAnswers(@Param("testId") int testId, @Param("rollNo") String rollNo);
 	
 	@Query(value = "select sum(score) from subjective_answer where test_id = :testId and roll_no = :rollNo", nativeQuery = true)
-	int getTotalScore(@Param("testId") int testId, @Param("rollNo") String rollNo);
+	Integer getTotalScore(@Param("testId") int testId, @Param("rollNo") String rollNo);
+	
+	@Query(value = "select sum(score) from subjective_answer where test_id = :testId", nativeQuery = true)
+	Integer getSumOfAllStudentsScore(@Param("testId") int testId);
+	
+	@Query(value = "select count(distinct roll_no) from subjective_answer where test_id = :testId", nativeQuery = true)
+	int getAllStudents(@Param("testId") int testId);
 	
 }

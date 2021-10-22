@@ -331,7 +331,6 @@ public class StudentController {
 	public ResponseEntity<TestStats> getTestStats(@RequestParam("rollNo") String rollNo,
 			@RequestParam("subject") String subjectCode, @RequestParam("type") String type,
 			@RequestParam("from") String from, @RequestParam("to") String to){
-		System.out.println(rollNo + " | " + subjectCode + " | " + type + " | " + from + " | " + to);
 		Student student = sRepo.getOne(rollNo);
 		
 		try {
@@ -347,14 +346,14 @@ public class StudentController {
 				}
 			}
 			
-			System.out.println(requiredTests.toString());
 			TestStats response = new TestStats();
 			
 			// for user
 			for(Test test : requiredTests) {
-				if(test.isSubjective() && sAnsRepo.existsByRollNoAndTestId(rollNo, test.getTestId())) {
+				if(test.isSubjective()) {
 					TestDetails td = subRepo.getNoOfQuestionsAndMaxMarks(test.getTestId());
-					int total = sAnsRepo.getTotalScore(test.getTestId(), rollNo);
+					Integer total = sAnsRepo.getTotalScore(test.getTestId(), rollNo);
+					total = total == null ? 0 : total;
 					
 					double percent = (double)total/td.getTotalMarks() * 100;
 					
@@ -362,7 +361,7 @@ public class StudentController {
 					response.getDates().add(test.getScheduleOn().split(" ")[0]);
 					response.getIDs().add(test.getTestId());
 					response.getTitles().add(test.getTitle());
-				}else if(!test.isSubjective() && mAnsRepo.existsByRollNoAndTestId(rollNo, test.getTestId())) {
+				}else {
 					List<MCQTestData> ansList = mAnsRepo.getAnswers(test.getTestId(), rollNo);
 					int total = 0;
 					for(MCQTestData data : ansList) {
@@ -384,27 +383,31 @@ public class StudentController {
 			}
 			
 			// for all
-			List<Student> students = sRepo.findBySemAndBranchAndSection(student.getSem(), student.getBranch(), student.getSection());
 			for(Test test : requiredTests) {
-				int total = 0, count = 0;
-				for(Student s : students) {
-					if(test.isSubjective() && sAnsRepo.existsByRollNoAndTestId(s.getRollNo(), test.getTestId())) {
-						count++;
-						total += sAnsRepo.getTotalScore(test.getTestId(), s.getRollNo());						
-					}else if(!test.isSubjective() && mAnsRepo.existsByRollNoAndTestId(s.getRollNo(), test.getTestId())) {
-						count++;
-						List<MCQTestData> ansList = mAnsRepo.getAnswers(test.getTestId(), rollNo);
-						for(MCQTestData data : ansList) {
-							if(data.getCorrectOption().equals(data.getAnswer())) {
-								total += test.getMarks();
-							}else if(data.getAnswer()!=null) {
-								total -= test.getNegativeMarks();
-							}
+				Integer total = 0, count = 0;
+				if(test.isSubjective()) {
+					count = sAnsRepo.getAllStudents(test.getTestId());
+					if(count==0) {
+						response.getAveragePercent().add(0.0);
+						continue;
+					}
+					total = sAnsRepo.getSumOfAllStudentsScore(test.getTestId());
+					total = total == null ? 0 : total;
+				}else {
+					count = mAnsRepo.getAllStudents(test.getTestId());
+					if(count==0) {
+						response.getAveragePercent().add(0.0);
+						continue;
+					}
+					List<MCQTestData> ansList = mAnsRepo.getAllStudentsAnswers(test.getTestId());
+					for(MCQTestData data : ansList) {
+						if(data.getCorrectOption().equals(data.getAnswer())) {
+							total += test.getMarks();
+						}else if(data.getAnswer()!=null) {
+							total -= test.getNegativeMarks();
 						}
 					}
 				}
-				
-				if(count==0) continue;
 				
 				int maxMarksForAll = 0;
 				if(test.isSubjective()) {
