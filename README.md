@@ -1,4 +1,4 @@
-# <a href="https://angular-exam-portal.web.app/exam-portal">Exam Portal</a>
+# <a href="https://angular-exam-portal.web.app/exam-portal">Virtual Classroom</a>
 * A web application where admin adds faculties and students.
 * Using portal faculties can schedule MCQ and Theory based test for students, view student past test history, attendance, and grade the Theory-based test.
 * Students will recieve test details(title, password, etc) on their mail, can give test during scheduled time and duration, view result on the result date, and see their past test performance.
