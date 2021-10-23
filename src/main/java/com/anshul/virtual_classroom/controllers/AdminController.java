@@ -25,6 +25,7 @@ import com.anshul.virtual_classroom.entity.Student;
 import com.anshul.virtual_classroom.repos.AdminRepo;
 import com.anshul.virtual_classroom.repos.FacultyRepo;
 import com.anshul.virtual_classroom.repos.StudentRepo;
+import com.anshul.virtual_classroom.utility.ChangePassword;
 
 
 @CrossOrigin//(origins ="http://localhost:4500")
@@ -78,12 +79,12 @@ public class AdminController {
 	}
 	
 	@PostMapping(path="/change_password", consumes= {"application/json"})
-	public ResponseEntity<List<String>> changePassword(@RequestBody Map<?, ?> a){
+	public ResponseEntity<List<String>> changePassword(@RequestBody ChangePassword a){
 		List<String> list = new ArrayList<>();
 		try {
-			Admin admin = aRepo.getOne((String)a.get("email"));
-			if(passwordEcorder.matches((String)a.get("password"), admin.getPassword())) {
-				admin.setPassword(passwordEcorder.encode((String)a.get("newPassword")));
+			Admin admin = aRepo.getOne(a.getEmail());
+			if(passwordEcorder.matches(a.getPassword(), admin.getPassword())) {
+				admin.setPassword(passwordEcorder.encode(a.getNewPassword()));
 				aRepo.save(admin);
 				list.add("Password Changed Successfully");
 				return new ResponseEntity<>(list, HttpStatus.OK);

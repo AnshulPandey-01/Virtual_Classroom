@@ -34,6 +34,7 @@ import com.anshul.virtual_classroom.repos.StudentRepo;
 import com.anshul.virtual_classroom.repos.SubjectiveAnswerRepo;
 import com.anshul.virtual_classroom.repos.SubjectiveTestRepo;
 import com.anshul.virtual_classroom.repos.TestRepo;
+import com.anshul.virtual_classroom.utility.ChangePassword;
 import com.anshul.virtual_classroom.utility.MCQTestData;
 import com.anshul.virtual_classroom.utility.PastTests;
 import com.anshul.virtual_classroom.utility.ScheduledTests;
@@ -93,12 +94,12 @@ public class StudentController {
 	}
 	
 	@PostMapping(path="/change_password", consumes= {"application/json"})
-	public ResponseEntity<List<String>> changePassword(@RequestBody Map<?, ?> a){
+	public ResponseEntity<List<String>> changePassword(@RequestBody ChangePassword a){
 		List<String> list = new ArrayList<>();
 		try {
-			Student student = sRepo.getOne((String)a.get("email"));
-			if(passwordEcorder.matches((String)a.get("password"), student.getPassword())) {
-				student.setPassword(passwordEcorder.encode((String)a.get("newPassword")));
+			Student student = sRepo.getOne(a.getEmail());
+			if(passwordEcorder.matches(a.getPassword(), student.getPassword())) {
+				student.setPassword(passwordEcorder.encode(a.getNewPassword()));
 				sRepo.save(student);
 				list.add("Password Changed Successfully");
 				return new ResponseEntity<>(list, HttpStatus.OK);
@@ -115,7 +116,7 @@ public class StudentController {
 		}
 	}
 	
-	@GetMapping("/tests/{rollNo}")
+	@GetMapping("/{rollNo}/tests")
 	public ResponseEntity<List<ScheduledTests>> getStudentTests(@PathVariable("rollNo") String rollNo){
 		Student student = sRepo.getOne(rollNo);
 		List<Test> tests = tRepo.getUpComingTestsBySBS(student.getSem(), student.getBranch(), student.getSection());
@@ -247,7 +248,7 @@ public class StudentController {
 		}
 	}
 	
-	@GetMapping("/tests/past/{rollNo}")
+	@GetMapping("/{rollNo}/tests/past")
 	public ResponseEntity<?> getStudentPastTests(@PathVariable("rollNo") String rollNo){
 		try {
 			Student student = sRepo.getOne(rollNo);
@@ -348,75 +349,55 @@ public class StudentController {
 			
 			TestStats response = new TestStats();
 			
-			// for user
 			for(Test test : requiredTests) {
+				double percent, avgPercent;
 				if(test.isSubjective()) {
-					TestDetails td = subRepo.getNoOfQuestionsAndMaxMarks(test.getTestId());
-					Integer total = sAnsRepo.getTotalScore(test.getTestId(), rollNo);
-					total = total == null ? 0 : total;
-					
-					double percent = (double)total/td.getTotalMarks() * 100;
-					
-					response.getUserPercent().add(percent);
-					response.getDates().add(test.getScheduleOn().split(" ")[0]);
-					response.getIDs().add(test.getTestId());
-					response.getTitles().add(test.getTitle());
-				}else {
-					List<MCQTestData> ansList = mAnsRepo.getAnswers(test.getTestId(), rollNo);
-					int total = 0;
-					for(MCQTestData data : ansList) {
-						if(data.getCorrectOption().equals(data.getAnswer())) {
-							total += test.getMarks();
-						}else if(data.getAnswer()!=null) {
-							total -= test.getNegativeMarks();
-						}
-					}
-					
-					int maxMarks = test.getMarks() * mcqRepo.getNoOfQuestions(test.getTestId());
-					double percent = (double)total/maxMarks * 100;
-					
-					response.getUserPercent().add(percent);
-					response.getDates().add(test.getScheduleOn().split(" ")[0]);
-					response.getIDs().add(test.getTestId());
-					response.getTitles().add(test.getTitle());
-				}
-			}
-			
-			// for all
-			for(Test test : requiredTests) {
-				Integer total = 0, count = 0;
-				if(test.isSubjective()) {
-					count = sAnsRepo.getAllStudents(test.getTestId());
+					int count = sAnsRepo.getAllStudents(test.getTestId());
 					if(count==0) {
-						response.getAveragePercent().add(0.0);
-						continue;
+						percent = 0;
+						avgPercent = 0;
+					}else {
+						TestDetails td = subRepo.getNoOfQuestionsAndMaxMarks(test.getTestId());
+						
+						Integer total = sAnsRepo.getTotalScore(test.getTestId(), rollNo);
+						total = total == null ? 0 : total;
+						percent = (double)total/td.getTotalMarks() * 100;
+						
+						Integer allScore = sAnsRepo.getSumOfAllStudentsScore(test.getTestId());
+						allScore = allScore == null ? 0 : allScore;
+						avgPercent = (double)allScore/(count * td.getTotalMarks()) * 100;
 					}
-					total = sAnsRepo.getSumOfAllStudentsScore(test.getTestId());
-					total = total == null ? 0 : total;
 				}else {
-					count = mAnsRepo.getAllStudents(test.getTestId());
+					int count = mAnsRepo.getAllStudents(test.getTestId());
 					if(count==0) {
-						response.getAveragePercent().add(0.0);
-						continue;
-					}
-					List<MCQTestData> ansList = mAnsRepo.getAllStudentsAnswers(test.getTestId());
-					for(MCQTestData data : ansList) {
-						if(data.getCorrectOption().equals(data.getAnswer())) {
-							total += test.getMarks();
-						}else if(data.getAnswer()!=null) {
-							total -= test.getNegativeMarks();
+						percent = 0;
+						avgPercent = 0;
+					}else {
+						int allScore = 0, score = 0;
+						int noOfQuestions = mcqRepo.getNoOfQuestions(test.getTestId());
+						int maxMarks = test.getMarks() * noOfQuestions;
+						
+						List<MCQTestData> allAnsList = mAnsRepo.getAllStudentsAnswers(test.getTestId());
+						for(MCQTestData data : allAnsList) {
+							if(data.getCorrectOption().equals(data.getAnswer())) {
+								score += data.getRollNo().equals(rollNo) ? test.getMarks() : 0;
+								allScore += test.getMarks();
+							}else if(data.getAnswer()!=null) {
+								score -= data.getRollNo().equals(rollNo) ? test.getNegativeMarks() : 0;
+								allScore -= test.getNegativeMarks();
+							}
 						}
+						
+						percent = (double)score/maxMarks * 100;
+						avgPercent = (double)allScore/(count * maxMarks) * 100;
 					}
 				}
 				
-				int maxMarksForAll = 0;
-				if(test.isSubjective()) {
-					maxMarksForAll = count * subRepo.getNoOfQuestionsAndMaxMarks(test.getTestId()).getTotalMarks();
-				}else {
-					maxMarksForAll = count * test.getMarks() * mcqRepo.getNoOfQuestions(test.getTestId());
-				}
-				double avgPercent = (double)total/maxMarksForAll * 100;
+				response.getUserPercent().add(percent);
 				response.getAveragePercent().add(avgPercent);
+				response.getDates().add(test.getScheduleOn().split(" ")[0]);
+				response.getIDs().add(test.getTestId());
+				response.getTitles().add(test.getTitle());
 			}
 			
 			return new ResponseEntity<>(response, HttpStatus.OK);

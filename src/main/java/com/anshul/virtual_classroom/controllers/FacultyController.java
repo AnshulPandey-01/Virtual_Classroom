@@ -36,6 +36,7 @@ import com.anshul.virtual_classroom.repos.StudentRepo;
 import com.anshul.virtual_classroom.repos.SubjectiveAnswerRepo;
 import com.anshul.virtual_classroom.repos.SubjectiveTestRepo;
 import com.anshul.virtual_classroom.repos.TestRepo;
+import com.anshul.virtual_classroom.utility.ChangePassword;
 import com.anshul.virtual_classroom.utility.MCQTestData;
 import com.anshul.virtual_classroom.utility.MCQTestResult;
 import com.anshul.virtual_classroom.utility.PastTests;
@@ -98,12 +99,12 @@ public class FacultyController {
 	}
 	
 	@PostMapping(path="/change_password", consumes= {"application/json"})
-	public ResponseEntity<List<String>> changePassword(@RequestBody Map<?, ?> a){
+	public ResponseEntity<List<String>> changePassword(@RequestBody ChangePassword a){
 		List<String> list = new ArrayList<>();
 		try {
-			Faculty faculty = fRepo.getOne((String)a.get("email"));
-			if(passwordEcorder.matches((String)a.get("password"), faculty.getPassword())) {
-				faculty.setPassword(passwordEcorder.encode((String)a.get("newPassword")));
+			Faculty faculty = fRepo.getOne((String)a.getEmail());
+			if(passwordEcorder.matches(a.getPassword(), faculty.getPassword())) {
+				faculty.setPassword(passwordEcorder.encode(a.getNewPassword()));
 				fRepo.save(faculty);
 				list.add("Password Changed Successfully");
 				return new ResponseEntity<>(list, HttpStatus.OK);

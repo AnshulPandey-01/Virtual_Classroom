@@ -2,6 +2,7 @@ package com.anshul.virtual_classroom.utility;
 
 public interface MCQTestData extends AnswerContainer {
 	
+	public String getRollNo();
 	public String getQuestionId();
 	public String getQuestion();
 	public String getOption1();
