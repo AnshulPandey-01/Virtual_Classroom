@@ -38,7 +38,7 @@ Download all the technology used according to their versions
 * Clone the Angular project from <a href="https://github.com/rajendra786952/Online-Test">here</a>.
 * Open the project in VS Code and their in terminal type ``` npm i ```
 * Clone this Spring Boot Project from <a href="https://github.com/AnshulPandey-01/exam_portal">here</a> and open it using STS and wait for maven to download all the dependencies.
-* Now to run the angular project type ``` ng serve ```
+* Now to run the angular project type ``` ng serve -o ```
 * Run spring boot project using STS.
 
 ## Online Project: 
