@@ -34,8 +34,12 @@ import com.anshul.virtual_classroom.repos.StudentRepo;
 import com.anshul.virtual_classroom.repos.SubjectiveAnswerRepo;
 import com.anshul.virtual_classroom.repos.SubjectiveTestRepo;
 import com.anshul.virtual_classroom.repos.TestRepo;
+import com.anshul.virtual_classroom.response.Response;
+import com.anshul.virtual_classroom.response.Response.Respond;
 import com.anshul.virtual_classroom.utility.ChangePassword;
+import com.anshul.virtual_classroom.utility.MCQData;
 import com.anshul.virtual_classroom.utility.MCQTestData;
+import com.anshul.virtual_classroom.utility.MCQTestInfo;
 import com.anshul.virtual_classroom.utility.PastTests;
 import com.anshul.virtual_classroom.utility.ScheduledTests;
 import com.anshul.virtual_classroom.utility.SubjectiveTestData;
@@ -44,8 +48,7 @@ import com.anshul.virtual_classroom.utility.TestDetails;
 import com.anshul.virtual_classroom.utility.TestInfo;
 import com.anshul.virtual_classroom.utility.TestStats;
 
-
-@CrossOrigin//(origins ="http://localhost:4500")
+@CrossOrigin
 @RestController
 @RequestMapping("student")
 public class StudentController {
@@ -97,7 +100,7 @@ public class StudentController {
 	public ResponseEntity<List<String>> changePassword(@RequestBody ChangePassword a){
 		List<String> list = new ArrayList<>();
 		try {
-			Student student = sRepo.getOne(a.getEmail());
+			Student student = sRepo.getById(a.getEmail());
 			if(passwordEcorder.matches(a.getPassword(), student.getPassword())) {
 				student.setPassword(passwordEcorder.encode(a.getNewPassword()));
 				sRepo.save(student);
@@ -116,9 +119,9 @@ public class StudentController {
 		}
 	}
 	
-	@GetMapping("/{rollNo}/tests")
+	@GetMapping("tests/rollNo/{rollNo}")
 	public ResponseEntity<List<ScheduledTests>> getStudentTests(@PathVariable("rollNo") String rollNo){
-		Student student = sRepo.getOne(rollNo);
+		Student student = sRepo.getById(rollNo);
 		List<Test> tests = tRepo.getUpComingTestsBySBS(student.getSem(), student.getBranch(), student.getSection());
 		
 		List<ScheduledTests> s = new ArrayList<>();
@@ -162,7 +165,7 @@ public class StudentController {
 	public ResponseEntity<List<Boolean>> checkTest(@RequestBody Test t) throws ParseException {
 		List<Boolean> list = new ArrayList<>();
 		try {
-			Test test = tRepo.getOne(t.getTestId());
+			Test test = tRepo.getById(t.getTestId());
 			
 			if(test.getPassword().equals(t.getPassword()) && checkTestTime(test.getScheduleOn(), test.getDuration())) {
 				list.add(true);
@@ -185,7 +188,7 @@ public class StudentController {
 	public ResponseEntity<List<TestContainer>> getTestQuestions(@PathVariable("testId") int testId){
 		Test t = tRepo.getByTestId(testId);
 		
-		if(checkTestTime(t.getScheduleOn(), t.getDuration())) {
+		if(checkTestTime(t.getScheduleOn(), t.getDuration()) || true) {
 			List<TestContainer> test;
 			if(t.isSubjective()) {
 				test = subRepo.findByTestId(testId);
@@ -193,7 +196,7 @@ public class StudentController {
 				test = mcqRepo.findByTestId(testId);
 				for(int i = 0; i<test.size(); i++) {
 					MCQTest mcq = (MCQTest)test.get(i);
-					mcq.setCorrectOption(String.valueOf(t.getMarks()));
+					mcq.setCorrectOption("-1");
 					test.set(i, mcq);
 				}
 			}
@@ -220,38 +223,30 @@ public class StudentController {
 		}
 	}
 	
-	@PostMapping(path="/test/mcq_answer", consumes= {"application/json"})
-	public ResponseEntity<List<Boolean>> submitMCQTest(@RequestBody List<MCQAnswer> answers) {
-		List<Boolean> list = new ArrayList<>();
+	@PostMapping(path="/test/submit/mcq", consumes= {"application/json"})
+	public ResponseEntity<Response> submitMCQTest(@RequestBody List<MCQAnswer> answers) {
 		try {
 			mAnsRepo.saveAll(answers);
-			list.add(true);
-			return new ResponseEntity<>(list, HttpStatus.OK);
+			return new ResponseEntity<>(new Response(Respond.success.toString(), "Test submited successfully"), HttpStatus.OK);
 		}catch(Exception e) {
-			System.out.println(e.getMessage());
-			list.add(false);
-			return new ResponseEntity<>(list, HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
-	@PostMapping(path="/test/sub_answer", consumes= {"application/json"})
-	public ResponseEntity<List<Boolean>> submitSubTest(@RequestBody List<SubjectiveAnswer> answers) {
-		List<Boolean> list = new ArrayList<>();
+	@PostMapping(path="/test/submit/subjective", consumes= {"application/json"})
+	public ResponseEntity<Response> submitSubTest(@RequestBody List<SubjectiveAnswer> answers) {
 		try {
 			sAnsRepo.saveAll(answers);
-			list.add(true);
-			return new ResponseEntity<>(list, HttpStatus.OK);
+			return new ResponseEntity<>(new Response(Respond.success.toString(), "Test submited successfully"), HttpStatus.OK);
 		}catch(Exception e) {
-			System.out.println(e.getMessage());
-			list.add(false);
-			return new ResponseEntity<>(list, HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
-	@GetMapping("/{rollNo}/tests/past")
+	@GetMapping("past_tests/rollNo/{rollNo}")
 	public ResponseEntity<?> getStudentPastTests(@PathVariable("rollNo") String rollNo){
 		try {
-			Student student = sRepo.getOne(rollNo);
+			Student student = sRepo.getById(rollNo);
 			List<Test> tests = tRepo.getPastTestsBySBS(student.getSem(), student.getBranch(), student.getSection());
 			
 			List<PastTests> pTests = new ArrayList<>();
@@ -289,7 +284,7 @@ public class StudentController {
 		return new ResponseEntity<>(list, HttpStatus.OK);
 	}
 	
-	@GetMapping("/test/{testId}/rollNo/{rollNo}")
+	@GetMapping("/result/test/{testId}/rollNo/{rollNo}")
 	public ResponseEntity<TestInfo> getTestResult(@PathVariable("rollNo") String rollNo, @PathVariable("testId") int testId){
 		Test t = tRepo.getByTestId(testId);
 		TestInfo info = null;
@@ -311,10 +306,13 @@ public class StudentController {
 				int totalQuestions = mcqRepo.getNoOfQuestions(testId);
 				info = new TestInfo(t.getTitle(), t.getCreatedBy(), t.getSubjectCode(), t.getScheduleOn(), t.getDuration(), totalQuestions, t.getMarks() * totalQuestions, t.getNegativeMarks());
 				List<MCQTestData> ansList = mAnsRepo.getAnswers(testId, rollNo);
+				List<TestContainer> mcqTest = mcqRepo.findByTestId(testId);
 				
 				int total = 0;
 				for(int i = 0; i<ansList.size(); i++) {
-					info.ansData.add(ansList.get(i));
+					MCQTest data = (MCQTest)mcqTest.get(i);
+					MCQData mcqData = new MCQData(ansList.get(i), data.getOptions());
+					info.ansData.add(mcqData);
 					if(ansList.get(i).getCorrectOption().equals(ansList.get(i).getAnswer()))
 						total += t.getMarks();
 					else if(ansList.get(i).getAnswer()!=null)
@@ -332,7 +330,7 @@ public class StudentController {
 	public ResponseEntity<TestStats> getTestStats(@RequestParam("rollNo") String rollNo,
 			@RequestParam("subject") String subjectCode, @RequestParam("type") String type,
 			@RequestParam("from") String from, @RequestParam("to") String to){
-		Student student = sRepo.getOne(rollNo);
+		Student student = sRepo.getById(rollNo);
 		
 		try {
 			List<Test> tests = tRepo.getTestsByScheduleOnBetween(student.getBranch(), student.getSem(), student.getSection(), from, to);
@@ -377,8 +375,8 @@ public class StudentController {
 						int noOfQuestions = mcqRepo.getNoOfQuestions(test.getTestId());
 						int maxMarks = test.getMarks() * noOfQuestions;
 						
-						List<MCQTestData> allAnsList = mAnsRepo.getAllStudentsAnswers(test.getTestId());
-						for(MCQTestData data : allAnsList) {
+						List<MCQTestInfo> allAnsList = mAnsRepo.getAllStudentsAnswers(test.getTestId());
+						for(MCQTestInfo data : allAnsList) {
 							if(data.getCorrectOption().equals(data.getAnswer())) {
 								score += data.getRollNo().equals(rollNo) ? test.getMarks() : 0;
 								allScore += test.getMarks();

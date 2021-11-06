@@ -2,12 +2,12 @@ package com.anshul.virtual_classroom.controllers;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import javax.persistence.EntityNotFoundException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -17,18 +17,23 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.anshul.virtual_classroom.entity.Admin;
+import com.anshul.virtual_classroom.entity.BranchSubjects;
 import com.anshul.virtual_classroom.entity.Faculty;
 import com.anshul.virtual_classroom.entity.Student;
 import com.anshul.virtual_classroom.repos.AdminRepo;
+import com.anshul.virtual_classroom.repos.BranchSubjectsRepos;
 import com.anshul.virtual_classroom.repos.FacultyRepo;
 import com.anshul.virtual_classroom.repos.StudentRepo;
+import com.anshul.virtual_classroom.response.Response;
+import com.anshul.virtual_classroom.response.Response.Respond;
 import com.anshul.virtual_classroom.utility.ChangePassword;
 
 
-@CrossOrigin//(origins ="http://localhost:4500")
+@CrossOrigin
 @RestController
 @RequestMapping("admin")
 public class AdminController {
@@ -39,11 +44,13 @@ public class AdminController {
 	private FacultyRepo fRepo;
 	@Autowired
 	private StudentRepo sRepo;
+	@Autowired
+	private BranchSubjectsRepos bsRepo;
 	
 	private static BCryptPasswordEncoder passwordEcorder = new BCryptPasswordEncoder();
 	
 	
-	@PostMapping(path="/add_admin", consumes= {"application/json"})
+	@PostMapping(path="/add/admin", consumes= {"application/json"})
 	public ResponseEntity<String> addAdmin(@RequestBody Admin a) {
 		try {
 			a.setPassword(passwordEcorder.encode(a.getPassword()));
@@ -60,7 +67,7 @@ public class AdminController {
 		list.add("ADMIN");
 		list.add("false");
 		try {
-			Admin admin = aRepo.getOne(a.getEmail());
+			Admin admin = aRepo.getById(a.getEmail());
 			if(passwordEcorder.matches(a.getPassword(), admin.getPassword())) {
 				list.set(1, admin.getUsername());
 				list.add(admin.getEmail());
@@ -82,7 +89,7 @@ public class AdminController {
 	public ResponseEntity<List<String>> changePassword(@RequestBody ChangePassword a){
 		List<String> list = new ArrayList<>();
 		try {
-			Admin admin = aRepo.getOne(a.getEmail());
+			Admin admin = aRepo.getById(a.getEmail());
 			if(passwordEcorder.matches(a.getPassword(), admin.getPassword())) {
 				admin.setPassword(passwordEcorder.encode(a.getNewPassword()));
 				aRepo.save(admin);
@@ -101,7 +108,7 @@ public class AdminController {
 		}
 	}
 	
-	@GetMapping("/trial")
+	@RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/trial")
 	public List<Faculty> trialCheck(){
 		List<Faculty> list = new ArrayList<>();
 		
@@ -115,61 +122,52 @@ public class AdminController {
 	}
 	
 	@GetMapping("/all/faculties")
-	public ResponseEntity<List<Faculty>> getFaculties(){
+	public ResponseEntity<Response> getFaculties(){
 		List<Faculty> list = fRepo.findAll();
 		
 		if(list.size()==0)
-			return new ResponseEntity<>(list, HttpStatus.NO_CONTENT);
+			return new ResponseEntity<>(new Response(Respond.error.toString(), "No content"), HttpStatus.OK);
 		
 		for(Faculty f : list)
 			f.setPassword(null);
 		
-		return new ResponseEntity<>(list, HttpStatus.OK);
+		return new ResponseEntity<>(new Response(Respond.success.toString(), list), HttpStatus.OK);
 	}
 	
 	@PostMapping(path="/change_faculty_access", consumes= {"application/json"})
-	public ResponseEntity<List<String>> changeFacultyAccess(@RequestBody Faculty f) {
-		List<String> list = new ArrayList<>();
+	public ResponseEntity<Response> changeFacultyAccess(@RequestBody Faculty f) {
 		try {
-			Faculty faculty = fRepo.getOne(f.getEmail());
+			Faculty faculty = fRepo.getById(f.getEmail());
 			faculty.setAllowed(f.isAllowed());
 			fRepo.save(faculty);
-			list.add(f.isAllowed()==true ? "Access granted" : "Access denaid");
-			return new ResponseEntity<>(list, HttpStatus.OK);
+			String res = f.isAllowed()==true ? "Access granted" : "Access denaid";
+			return new ResponseEntity<>(new Response(Respond.success.toString(), res), HttpStatus.OK);
 		}catch(Exception e) {
-			list.add(e.getMessage());
-			return new ResponseEntity<>(list, HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
-	@PostMapping(path="/add_faculty", consumes= {"application/json"})
-	public ResponseEntity<List<String>> addFaculty(@RequestBody Faculty f) {
-		List<String> list = new ArrayList<>();
-		
+	@PostMapping(path="/add/faculty", consumes= {"application/json"})
+	public ResponseEntity<Response> addFaculty(@RequestBody Faculty f) {		
 		if(fRepo.checkFacultyExists(f.getName(), f.getEmail()) >= 1) {
-			list.add("Faculty already exists");
-			return new ResponseEntity<>(list, HttpStatus.CONFLICT);
+			return new ResponseEntity<>(new Response(Respond.error.toString(), "Faculty already exists"), HttpStatus.CONFLICT);
 		}
 		
 		try {
 			f.setPassword(passwordEcorder.encode(f.getPassword()));
 			fRepo.save(f);
-			list.add("Faculty added successfully");
-			return new ResponseEntity<>(list, HttpStatus.CREATED);
+			return new ResponseEntity<>(new Response(Respond.success.toString(), "Faculty added successfully"), HttpStatus.CREATED);
 		}catch(Exception e) {
-			list.add(e.getMessage());
-			return new ResponseEntity<>(list, HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
-	@PostMapping(path="/add_faculties", consumes= {"application/json"})
-	public ResponseEntity<List<String>> addFaculties(@RequestBody List<Faculty> faculties) {
-		List<String> list = new ArrayList<>();
-		
+	@PostMapping(path="/add/faculties", consumes= {"application/json"})
+	public ResponseEntity<Response> addFaculties(@RequestBody List<Faculty> faculties) {		
 		for(Faculty f : faculties){
 			if(fRepo.checkFacultyExists(f.getName(), f.getEmail()) >= 1) {
-				list.add("Faculty with Email: " + f.getEmail() + " or Name: " + f.getName() + " already exists");
-				return new ResponseEntity<>(list, HttpStatus.CONFLICT);
+				String res = "Faculty with Email: " + f.getEmail() + " or Name: " + f.getName() + " already exists";
+				return new ResponseEntity<>(new Response(Respond.error.toString(), res), HttpStatus.CONFLICT);
 			}else {
 				f.setPassword(passwordEcorder.encode(f.getPassword()));
 			}
@@ -177,73 +175,59 @@ public class AdminController {
 		
 		try {
 			fRepo.saveAll(faculties);
-			list.add("Faculties added successfully");
-			return new ResponseEntity<>(list, HttpStatus.CREATED);
+			return new ResponseEntity<>(new Response(Respond.success.toString(), "Faculties added successfully"), HttpStatus.CREATED);
 		}catch(Exception e) {
-			list.add(e.getMessage());
-			return new ResponseEntity<>(list, HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
 	@GetMapping("/all/students")
-	public ResponseEntity<List<Student>> getStudents(){
+	public ResponseEntity<Response> getStudents(){
 		List<Student> list = sRepo.findAll();
 		
 		if(list.size()==0)
-			return new ResponseEntity<>(list, HttpStatus.NO_CONTENT);
+			return new ResponseEntity<>(new Response(Respond.error.toString(), "No content"), HttpStatus.OK);
 		
 		for(Student s : list)
 			s.setPassword(null);
 		
-		return new ResponseEntity<>(list, HttpStatus.OK);
+		return new ResponseEntity<>(new Response(Respond.success.toString(), list), HttpStatus.OK);
 	}
 	
 	@DeleteMapping("/remove/student/{email}")
-	public ResponseEntity<List<Object>> deleteStudent(@PathVariable("email") String email) {
-		List<Object> list = new ArrayList<>();
+	public ResponseEntity<Response> deleteStudent(@PathVariable("email") String email) {
 		try {
 			Student s = sRepo.getOneByEmail(email);
 			sRepo.deleteFromMCQ(s.getRollNo());
 			sRepo.deleteFromSubjective(s.getRollNo());
 			sRepo.delete(s);
-			list.add(true);
-			list.add("Student record deleted successfully");
-			return new ResponseEntity<>(list, HttpStatus.OK);
+			return new ResponseEntity<>(new Response(Respond.success.toString(), "Student record deleted successfully"), HttpStatus.OK);
 		}catch(Exception e) {
-			list.add(false);
-			list.add(e.getMessage());
-			return new ResponseEntity<>(list, HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
-	@PostMapping(path="/add_student", consumes= {"application/json"})
-	public ResponseEntity<List<String>> addStudent(@RequestBody Student s) {
-		List<String> list = new ArrayList<>();
-		
+	@PostMapping(path="/add/student", consumes= {"application/json"})
+	public ResponseEntity<Response> addStudent(@RequestBody Student s) {		
 		if(sRepo.checkStudentExists(s.getRollNo(), s.getEmail()) >= 1) {
-			list.add("Student already exists");
-			return new ResponseEntity<>(list, HttpStatus.CONFLICT);
+			return new ResponseEntity<>(new Response(Respond.error.toString(), "Student already exists"), HttpStatus.CONFLICT);
 		}
 		
 		try {
 			s.setPassword(passwordEcorder.encode(s.getPassword()));
 			sRepo.save(s);
-			list.add("Student added successfully");
-			return new ResponseEntity<>(list, HttpStatus.CREATED);
+			return new ResponseEntity<>(new Response(Respond.success.toString(), "Student added successfully"), HttpStatus.CREATED);
 		}catch(Exception e) {
-			list.add(e.getMessage());
-			return new ResponseEntity<>(list, HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
-	@PostMapping(path="/add_students", consumes= {"application/json"})
-	public ResponseEntity<List<String>> addStudents(@RequestBody List<Student> students) {
-		List<String> list = new ArrayList<>();
-		
+	@PostMapping(path="/add/students", consumes= {"application/json"})
+	public ResponseEntity<Response> addStudents(@RequestBody List<Student> students) {		
 		for(Student s : students){
 			if(sRepo.checkStudentExists(s.getRollNo(), s.getEmail()) >= 1) {
-				list.add("Faculty with Email: " + s.getRollNo() + " or Name: " + s.getEmail() + " already exists");
-				return new ResponseEntity<>(list, HttpStatus.CONFLICT);
+				String res = "Student with Email: " + s.getRollNo() + " or Roll No: " + s.getEmail() + " already exists";
+				return new ResponseEntity<>(new Response(Respond.error.toString(), res), HttpStatus.CONFLICT);
 			}else {
 				s.setPassword(passwordEcorder.encode(s.getPassword()));
 			}
@@ -251,11 +235,25 @@ public class AdminController {
 		
 		try {
 			sRepo.saveAll(students);
-			list.add("Students added successfully");
-			return new ResponseEntity<>(list, HttpStatus.CREATED);
+			return new ResponseEntity<>(new Response(Respond.success.toString(), "Students added successfully"), HttpStatus.CREATED);
 		}catch(Exception e) {
-			list.add(e.getMessage());
-			return new ResponseEntity<>(list, HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
+	
+	@PostMapping(path="/add/branch_subjects", consumes= {"application/json"})
+	public ResponseEntity<Response> addBranchSubjects(@RequestBody BranchSubjects bs){
+		System.out.println(bs);
+		if(bsRepo.existsById(bs.getBranch())) {
+			return new ResponseEntity<>(new Response(Respond.error.toString(), "Branch already exists"), HttpStatus.CONFLICT);
+		}
+		
+		return new ResponseEntity<>(new Response(Respond.success.toString(), bsRepo.save(bs)), HttpStatus.CREATED);
+	}
+	
+	@GetMapping("/all/branch_subjects")
+	public ResponseEntity<Response> getBranchSubjects(){
+		return new ResponseEntity<>(new Response(Respond.success.toString(), bsRepo.findAll()), HttpStatus.OK);
+	}
+	
 }

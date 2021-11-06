@@ -5,13 +5,14 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import com.anshul.virtual_classroom.entity.SubjectiveAnswer;
-import com.anshul.virtual_classroom.entity.Test;
 import com.anshul.virtual_classroom.utility.AnswerId;
 import com.anshul.virtual_classroom.utility.SubjectiveTestData;
 import com.anshul.virtual_classroom.utility.SubjectiveTestResult;
 
+@Repository
 public interface SubjectiveAnswerRepo extends JpaRepository<SubjectiveAnswer, AnswerId>{
 
 	boolean existsByRollNoAndTestId(String rollNo, int testId);

@@ -28,17 +28,8 @@ public class MCQTest implements TestContainer {
 	@Column(nullable = false)
 	private String question;
 	
-	@Column(nullable = false)
-	private String option1;
-	
-	@Column(nullable = false)
-	private String option2;
-	
-	@Column(nullable = true)
-	private String option3;
-	
-	@Column(nullable = true)
-	private String option4;
+	@Column(name = "q_options", nullable = false)
+	private String[] options;
 	
 	@Column(name = "correct_option", nullable = false)
 	private String correctOption;

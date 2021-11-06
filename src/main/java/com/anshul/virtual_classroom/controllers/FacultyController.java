@@ -36,6 +36,8 @@ import com.anshul.virtual_classroom.repos.StudentRepo;
 import com.anshul.virtual_classroom.repos.SubjectiveAnswerRepo;
 import com.anshul.virtual_classroom.repos.SubjectiveTestRepo;
 import com.anshul.virtual_classroom.repos.TestRepo;
+import com.anshul.virtual_classroom.response.Response;
+import com.anshul.virtual_classroom.response.Response.Respond;
 import com.anshul.virtual_classroom.utility.ChangePassword;
 import com.anshul.virtual_classroom.utility.MCQTestData;
 import com.anshul.virtual_classroom.utility.MCQTestResult;
@@ -44,7 +46,7 @@ import com.anshul.virtual_classroom.utility.SubjectiveTestData;
 import com.anshul.virtual_classroom.utility.SubjectiveTestResult;
 
 
-@CrossOrigin//(origins ="http://localhost:4500")
+@CrossOrigin
 @RestController
 @RequestMapping("faculty")
 public class FacultyController {
@@ -75,7 +77,7 @@ public class FacultyController {
 		list.add("FACULTY");
 		
 		try {
-			Faculty faculty = fRepo.getOne(f.getEmail());
+			Faculty faculty = fRepo.getById(f.getEmail());
 			if(faculty.isAllowed()) {
 				if(passwordEcorder.matches(f.getPassword(), faculty.getPassword())) {
 					list.add(faculty.getName());
@@ -102,7 +104,7 @@ public class FacultyController {
 	public ResponseEntity<List<String>> changePassword(@RequestBody ChangePassword a){
 		List<String> list = new ArrayList<>();
 		try {
-			Faculty faculty = fRepo.getOne((String)a.getEmail());
+			Faculty faculty = fRepo.getById((String)a.getEmail());
 			if(passwordEcorder.matches(a.getPassword(), faculty.getPassword())) {
 				faculty.setPassword(passwordEcorder.encode(a.getNewPassword()));
 				fRepo.save(faculty);
@@ -146,7 +148,7 @@ public class FacultyController {
 	}
 	
 	@PostMapping(path="/create_mcq_test", consumes = {"application/json"})
-	public ResponseEntity<?> addMCQTest(@RequestBody List<MCQTest> m_test) {
+	public ResponseEntity<Response> addMCQTest(@RequestBody List<MCQTest> m_test) {
 		for(MCQTest mt : m_test) 
 			mt.setQuestionId(mt.getTestId() + "-" + mt.getQuestionId());
 		
@@ -154,11 +156,9 @@ public class FacultyController {
 		try {
 			mcqRepo.saveAll(m_test);
 			sendMails(m_test.get(0).getTestId());
-			m.put("Message", "Created Successfully");
-			return new ResponseEntity<>(m, HttpStatus.CREATED);
+			return new ResponseEntity<>(new Response(Respond.success.toString(), "Created Successfully"), HttpStatus.CREATED);
 		}catch (Exception e) {
-			m.put("Error", e.getMessage());
-			return new ResponseEntity<>(m, HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
@@ -213,7 +213,7 @@ public class FacultyController {
 		List<Map<String, Object>> endResult = new ArrayList<>();
 		
 		try {
-			Test test = tRepo.getOne(testId);
+			Test test = tRepo.getById(testId);
 			List<Student> list = sRepo.findBySemAndBranchAndSection(test.getSem(), test.getBranch(), test.getSection());
 			
 			Map<String, Map<String, Object>> map = new HashMap<>();
@@ -302,8 +302,8 @@ public class FacultyController {
 	public ResponseEntity<Map<?, ?>> getPastTestStudentAnswer(@PathVariable("testId") int testId, @PathVariable("rollNo") String rollNo){
 		Map<String, Object> map = new HashMap<>();
 		try {
-			Student student = sRepo.getOne(rollNo);
-			Test test = tRepo.getOne(testId);
+			Student student = sRepo.getById(rollNo);
+			Test test = tRepo.getById(testId);
 			
 			map.put("rollNo", student.getRollNo());
 			map.put("name", student.getName());

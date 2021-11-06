@@ -24,4 +24,5 @@ public class VirtualClassroomApplication {
             aRepo.save(admin);
         };
     }
+	
 }
