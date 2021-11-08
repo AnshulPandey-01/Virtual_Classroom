@@ -13,10 +13,10 @@ public class MCQData implements AnswerContainer{
 	private String getCorrectOption;
 	private String answer;
 	
-	public MCQData(MCQTestData mcqTestData, String[] options) {
+	public MCQData(MCQTestData mcqTestData) {
 		this.questionId = mcqTestData.getQuestionId();
 		this.question = mcqTestData.getQuestion();
-		this.options = options;
+		this.options = mcqTestData.getOptions().split("\\|,\\|");
 		this.getCorrectOption = mcqTestData.getCorrectOption();
 		this.answer = mcqTestData.getAnswer();
 	}

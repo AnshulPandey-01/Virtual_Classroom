@@ -4,12 +4,24 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
+import org.hibernate.annotations.TypeDefs;
+
 import com.anshul.virtual_classroom.utility.TestContainer;
+import com.vladmihalcea.hibernate.type.array.StringArrayType;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+
+@TypeDefs({
+    @TypeDef(
+        name = "string-array",
+        typeClass = StringArrayType.class
+    )
+})
 
 @Getter
 @Setter
@@ -28,7 +40,8 @@ public class MCQTest implements TestContainer {
 	@Column(nullable = false)
 	private String question;
 	
-	@Column(name = "q_options", nullable = false)
+	@Type(type = "string-array")
+	@Column(nullable = true, columnDefinition = "text[]")
 	private String[] options;
 	
 	@Column(name = "correct_option", nullable = false)

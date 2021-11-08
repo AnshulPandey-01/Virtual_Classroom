@@ -39,6 +39,7 @@ import com.anshul.virtual_classroom.repos.TestRepo;
 import com.anshul.virtual_classroom.response.Response;
 import com.anshul.virtual_classroom.response.Response.Respond;
 import com.anshul.virtual_classroom.utility.ChangePassword;
+import com.anshul.virtual_classroom.utility.MCQData;
 import com.anshul.virtual_classroom.utility.MCQTestData;
 import com.anshul.virtual_classroom.utility.MCQTestResult;
 import com.anshul.virtual_classroom.utility.PastTests;
@@ -135,15 +136,14 @@ public class FacultyController {
 	}
 	
 	@PostMapping(path="/create_test", consumes = {"application/json"})
-	public ResponseEntity<?> addTest(@RequestBody Test t) {
-		Map<String, Object> m = new HashMap<>();
+	public ResponseEntity<Response> addTest(@RequestBody Test t) {
+		Map<String, Integer> res = new HashMap<>();
 		try{
 			Test test = tRepo.save(t);
-			m.put("TestId", test.getTestId());
-			return new ResponseEntity<>(m, HttpStatus.CREATED);
+			res.put("TestId", test.getTestId());
+			return new ResponseEntity<>(new Response(Respond.success.toString(), res), HttpStatus.CREATED);
 		}catch(Exception e){
-			m.put("Error", e.getMessage());
-			return new ResponseEntity<>(m, HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
@@ -152,7 +152,6 @@ public class FacultyController {
 		for(MCQTest mt : m_test) 
 			mt.setQuestionId(mt.getTestId() + "-" + mt.getQuestionId());
 		
-		Map<String, String> m = new HashMap<>();
 		try {
 			mcqRepo.saveAll(m_test);
 			sendMails(m_test.get(0).getTestId());
@@ -163,19 +162,16 @@ public class FacultyController {
 	}
 	
 	@PostMapping(path="/create_sub_test", consumes = {"application/json"})
-	public ResponseEntity<?> addSUBTest(@RequestBody List<SubjectiveTest> s_test) {
+	public ResponseEntity<Response> addSUBTest(@RequestBody List<SubjectiveTest> s_test) {
 		for(SubjectiveTest st : s_test) 
 			st.setQuestionId(st.getTestId() + "-" + st.getQuestionId());
 		
-		Map<String, String> m = new HashMap<>();
 		try {
 			subRepo.saveAll(s_test);
 			sendMails(s_test.get(0).getTestId());
-			m.put("Message", "Created Successfully");
-			return new ResponseEntity<>(m, HttpStatus.CREATED);
+			return new ResponseEntity<>(new Response(Respond.success.toString(), "Created Successfully"), HttpStatus.CREATED);
 		}catch (Exception e) {
-			m.put("Error", e.getMessage());
-			return new ResponseEntity<>(m, HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
@@ -331,16 +327,18 @@ public class FacultyController {
 			}else {
 				map.put("isEditable", false);
 				
-				List<MCQTestData> ansList = mcqAnsRepo.getAnswers(testId, rollNo);
-				map.put("ansList", ansList);
+				List<MCQTestData> list = mcqAnsRepo.getAnswers(testId, rollNo);
 				
+				List<MCQData> ansList = new ArrayList<>();
 				int totalMarks = 0;
-				for(int i = 0; i<ansList.size(); i++) {
-					if(ansList.get(i).getCorrectOption().equals(ansList.get(i).getAnswer()))
+				for(int i = 0; i<list.size(); i++) {
+					ansList.add(new MCQData(list.get(i)));
+					if(list.get(i).getCorrectOption().equals(list.get(i).getAnswer()))
 						totalMarks += test.getMarks();
-					else if(ansList.get(i).getAnswer()!=null)
+					else if(list.get(i).getAnswer()!=null)
 						totalMarks -= test.getNegativeMarks();
 				}
+				map.put("ansList", ansList);
 				map.put("totalMarks", totalMarks);
 			}
 			

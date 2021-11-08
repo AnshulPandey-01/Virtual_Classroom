@@ -21,7 +21,7 @@ public interface MCQAnswerRepo extends JpaRepository<MCQAnswer, AnswerId> {
 	@Query(value = "select s.roll_no as rollNo, s.name, ans.question_id as questionId, ans.answer, t.correct_option as correctOption from student s inner join mcq_answer ans on s.roll_no = ans.roll_no inner join mcq_test t on ans.question_id = t.question_id where ans.test_id= :testId order by ans.roll_no", nativeQuery = true)
 	List<MCQTestResult> getTestResult(@Param("testId") int testId);
 
-	@Query(value = "select t.question_id as questionId, t.question, t.correct_option as correctOption, a.answer from mcq_test t inner join mcq_answer a on t.question_id = a.question_id where a.test_id = :testId and a.roll_no = :rollNo", nativeQuery = true)
+	@Query(value = "select t.question_id as questionId, t.question as question, array_to_string(t.options, '|,|') as options, t.correct_option as correctOption, a.answer as answer from mcq_test t inner join mcq_answer a on t.question_id = a.question_id where a.test_id = :testId and a.roll_no = :rollNo", nativeQuery = true)
 	List<MCQTestData> getAnswers(@Param("testId") int testId, @Param("rollNo") String rollNo);
 	
 	@Query(value = "select a.roll_no as rollNo, t.correct_option as correctOption, a.answer from mcq_test t inner join mcq_answer a on t.question_id = a.question_id where a.test_id = :testId", nativeQuery = true)

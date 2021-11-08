@@ -188,7 +188,7 @@ public class StudentController {
 	public ResponseEntity<List<TestContainer>> getTestQuestions(@PathVariable("testId") int testId){
 		Test t = tRepo.getByTestId(testId);
 		
-		if(checkTestTime(t.getScheduleOn(), t.getDuration()) || true) {
+		if(checkTestTime(t.getScheduleOn(), t.getDuration())) {
 			List<TestContainer> test;
 			if(t.isSubjective()) {
 				test = subRepo.findByTestId(testId);
@@ -306,13 +306,10 @@ public class StudentController {
 				int totalQuestions = mcqRepo.getNoOfQuestions(testId);
 				info = new TestInfo(t.getTitle(), t.getCreatedBy(), t.getSubjectCode(), t.getScheduleOn(), t.getDuration(), totalQuestions, t.getMarks() * totalQuestions, t.getNegativeMarks());
 				List<MCQTestData> ansList = mAnsRepo.getAnswers(testId, rollNo);
-				List<TestContainer> mcqTest = mcqRepo.findByTestId(testId);
 				
 				int total = 0;
 				for(int i = 0; i<ansList.size(); i++) {
-					MCQTest data = (MCQTest)mcqTest.get(i);
-					MCQData mcqData = new MCQData(ansList.get(i), data.getOptions());
-					info.ansData.add(mcqData);
+					info.ansData.add(new MCQData(ansList.get(i)));
 					if(ansList.get(i).getCorrectOption().equals(ansList.get(i).getAnswer()))
 						total += t.getMarks();
 					else if(ansList.get(i).getAnswer()!=null)
