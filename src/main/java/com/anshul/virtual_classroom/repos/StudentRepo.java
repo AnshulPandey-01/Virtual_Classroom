@@ -11,8 +11,6 @@ import com.anshul.virtual_classroom.entity.Student;
 import java.lang.String;
 import java.util.List;
 
-import javax.transaction.Transactional;
-
 @Repository
 public interface StudentRepo extends JpaRepository<Student, String> {
 	
@@ -23,12 +21,10 @@ public interface StudentRepo extends JpaRepository<Student, String> {
 	
 	List<Student> findBySemAndBranchAndSection(int sem, String branch, String section);
 	
-	@Transactional
 	@Modifying
 	@Query(value = "delete from mcq_answer where roll_no = :rollNo", nativeQuery = true)
 	void deleteFromMCQ(@Param("rollNo") String rollNo);
 	
-	@Transactional
 	@Modifying
 	@Query(value = "delete from subjective_answer where roll_no = :rollNo", nativeQuery = true)
 	void deleteFromSubjective(@Param("rollNo") String rollNo);
