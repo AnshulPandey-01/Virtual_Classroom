@@ -1,5 +1,7 @@
 package com.anshul.virtual_classroom.entity;
 
+import java.util.Arrays;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -37,5 +39,16 @@ public class BranchSubjects {
 	@Type(type = "string-array")
 	@Column(nullable = false, columnDefinition = "text[]")
 	private String[] subjects;
+
+	public String subjectsToString() {
+		StringBuilder sb = new StringBuilder();
+		
+		Arrays.asList(subjects).forEach(sub -> {
+			sb.append(sub + "|,|");
+		});
+		sb.setLength(sb.length()-3);
+		
+		return sb.toString();
+	}
 	
 }

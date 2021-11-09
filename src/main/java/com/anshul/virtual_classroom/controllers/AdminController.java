@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.anshul.virtual_classroom.entity.Admin;
@@ -31,7 +33,6 @@ import com.anshul.virtual_classroom.repos.StudentRepo;
 import com.anshul.virtual_classroom.response.Response;
 import com.anshul.virtual_classroom.response.Response.Respond;
 import com.anshul.virtual_classroom.utility.ChangePassword;
-
 
 @CrossOrigin
 @RestController
@@ -194,8 +195,9 @@ public class AdminController {
 		return new ResponseEntity<>(new Response(Respond.success.toString(), list), HttpStatus.OK);
 	}
 	
-	@DeleteMapping("/remove/student/{email}")
-	public ResponseEntity<Response> deleteStudent(@PathVariable("email") String email) {
+	@Transactional
+	@DeleteMapping("/delete/student")
+	public ResponseEntity<Response> deleteStudent(@RequestParam("email") String email) {
 		try {
 			Student s = sRepo.getOneByEmail(email);
 			sRepo.deleteFromMCQ(s.getRollNo());
@@ -241,19 +243,47 @@ public class AdminController {
 		}
 	}
 	
-	@PostMapping(path="/add/branch_subjects", consumes= {"application/json"})
+	@RequestMapping(method = RequestMethod.GET, value = "/all/branch_subjects")
+	public ResponseEntity<Response> getBranchSubjects(){
+		return new ResponseEntity<>(new Response(Respond.success.toString(), bsRepo.findAll()), HttpStatus.OK);
+	}
+	
+	@RequestMapping(method = RequestMethod.POST, value = "/add/branch_subjects", consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Response> addBranchSubjects(@RequestBody BranchSubjects bs){
-		System.out.println(bs);
 		if(bsRepo.existsById(bs.getBranch())) {
 			return new ResponseEntity<>(new Response(Respond.error.toString(), "Branch already exists"), HttpStatus.CONFLICT);
 		}
 		
-		return new ResponseEntity<>(new Response(Respond.success.toString(), bsRepo.save(bs)), HttpStatus.CREATED);
+		bsRepo.save(bs);
+		return new ResponseEntity<>(new Response(Respond.success.toString(), "Branch and Subjects added successfully"), HttpStatus.CREATED);
 	}
 	
-	@GetMapping("/all/branch_subjects")
-	public ResponseEntity<Response> getBranchSubjects(){
-		return new ResponseEntity<>(new Response(Respond.success.toString(), bsRepo.findAll()), HttpStatus.OK);
+	@Transactional
+	@RequestMapping(method = RequestMethod.PUT, value = "/update/branch_subjects", consumes = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<Response> updateBranchSubjects(@RequestBody BranchSubjects bs, @RequestParam(value = "branch", required = false) String branch){
+		if(branch==null) {
+			BranchSubjects brSubs = bsRepo.getById(bs.getBranch());
+			brSubs.setSubjects(bs.getSubjects());
+			bsRepo.save(brSubs);
+			return new ResponseEntity<>(new Response(Respond.success.toString(), "Subjects updated successfully"), HttpStatus.OK);
+		}else {
+			BranchSubjects brSubs = bsRepo.findById(branch).orElse(null);
+			if(brSubs==null) {
+				return new ResponseEntity<>(new Response(Respond.error.toString(), "Branch does not exists"), HttpStatus.NOT_FOUND);
+			}
+			bsRepo.updateBranchAndSubjects(branch, bs.getBranch(), bs.subjectsToString());
+			return new ResponseEntity<>(new Response(Respond.success.toString(), "Branch and Subjects updated successfully"), HttpStatus.OK);
+		}
+	}
+	
+	@RequestMapping(method = RequestMethod.DELETE, value = "/delete/branch_subjects")
+	public ResponseEntity<Response> deleteBranch(@RequestParam("branch") String branch){
+		BranchSubjects brSubs = bsRepo.findById(branch).orElse(null);
+		if(brSubs==null) {
+			return new ResponseEntity<>(new Response(Respond.error.toString(), "Branch does not exists"), HttpStatus.NOT_FOUND);
+		}
+		bsRepo.delete(brSubs);
+		return new ResponseEntity<>(new Response(Respond.success.toString(), "Branch deleted successfully"), HttpStatus.OK);
 	}
 	
 }
