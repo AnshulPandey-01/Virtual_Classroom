@@ -110,16 +110,8 @@ public class AdminController {
 	}
 	
 	@RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/trial")
-	public List<Faculty> trialCheck(){
-		List<Faculty> list = new ArrayList<>();
-		
-		Faculty f1 = new Faculty("abc@gmail.com", "abc", "123456");
-		Faculty f2 = new Faculty("xyz@gmail.com", "xyz", "987654");
-		
-		list.add(f1);
-		list.add(f2);
-		
-		return list;
+	public ResponseEntity<Response> trialCheck(){
+		return new ResponseEntity<>(new Response(Respond.success.toString(), "Welcome to Virtual Classroom"), HttpStatus.OK);
 	}
 	
 	@GetMapping("/all/faculties")
