@@ -9,10 +9,6 @@ import org.springframework.stereotype.Repository;
 import com.anshul.virtual_classroom.entity.BranchSubjects;
 
 @Repository
-public interface BranchSubjectsRepos extends JpaRepository<BranchSubjects, String> {
-	
-	@Modifying
-	@Query(value = "UPDATE branch_subjects SET branch = :newBranch, subjects = string_to_array(:subjects, '|,|') where branch = :oldBranch", nativeQuery = true)
-	void updateBranchAndSubjects(@Param("oldBranch") String oldBranch, @Param("newBranch") String newBranch, @Param("subjects") String subjects);
+public interface BranchSubjectsRepos extends JpaRepository<BranchSubjects, Integer> {
 	
 }

@@ -133,7 +133,7 @@ public class AdminController {
 			Faculty faculty = fRepo.getById(f.getEmail());
 			faculty.setAllowed(f.isAllowed());
 			fRepo.save(faculty);
-			String res = f.isAllowed()==true ? "Access granted" : "Access denaid";
+			String res = f.isAllowed()==true ? "Access granted" : "Access denied";
 			return new ResponseEntity<>(new Response(Respond.success.toString(), res), HttpStatus.OK);
 		}catch(Exception e) {
 			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -242,7 +242,7 @@ public class AdminController {
 	
 	@RequestMapping(method = RequestMethod.POST, value = "/add/branch_subjects", consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Response> addBranchSubjects(@RequestBody BranchSubjects bs){
-		if(bsRepo.existsById(bs.getBranch())) {
+		if(bsRepo.existsById(bs.getBranchId())) {
 			return new ResponseEntity<>(new Response(Respond.error.toString(), "Branch already exists"), HttpStatus.CONFLICT);
 		}
 		
@@ -250,27 +250,19 @@ public class AdminController {
 		return new ResponseEntity<>(new Response(Respond.success.toString(), "Branch and Subjects added successfully"), HttpStatus.CREATED);
 	}
 	
-	@Transactional
 	@RequestMapping(method = RequestMethod.PUT, value = "/update/branch_subjects", consumes = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Response> updateBranchSubjects(@RequestBody BranchSubjects bs, @RequestParam(value = "branch", required = false) String branch){
-		if(branch==null) {
-			BranchSubjects brSubs = bsRepo.getById(bs.getBranch());
-			brSubs.setSubjects(bs.getSubjects());
-			bsRepo.save(brSubs);
-			return new ResponseEntity<>(new Response(Respond.success.toString(), "Subjects updated successfully"), HttpStatus.OK);
-		}else {
-			BranchSubjects brSubs = bsRepo.findById(branch).orElse(null);
-			if(brSubs==null) {
-				return new ResponseEntity<>(new Response(Respond.error.toString(), "Branch does not exists"), HttpStatus.NOT_FOUND);
-			}
-			bsRepo.updateBranchAndSubjects(branch, bs.getBranch(), bs.subjectsToString());
-			return new ResponseEntity<>(new Response(Respond.success.toString(), "Branch and Subjects updated successfully"), HttpStatus.OK);
+	public ResponseEntity<Response> updateBranchSubjects(@RequestBody BranchSubjects bs){
+		if(bsRepo.existsById(bs.getBranchId())) {
+			bsRepo.save(bs);
+			return new ResponseEntity<>(new Response(Respond.success.toString(), "Updated successfully"), HttpStatus.OK);
 		}
+		
+		return new ResponseEntity<>(new Response(Respond.error.toString(), "Invalid Branch-Id"), HttpStatus.CONFLICT);
 	}
 	
 	@RequestMapping(method = RequestMethod.DELETE, value = "/delete/branch_subjects")
-	public ResponseEntity<Response> deleteBranch(@RequestParam("branch") String branch){
-		BranchSubjects brSubs = bsRepo.findById(branch).orElse(null);
+	public ResponseEntity<Response> deleteBranch(@RequestParam("branchId") int branchId){
+		BranchSubjects brSubs = bsRepo.findById(branchId).orElse(null);
 		if(brSubs==null) {
 			return new ResponseEntity<>(new Response(Respond.error.toString(), "Branch does not exists"), HttpStatus.NOT_FOUND);
 		}

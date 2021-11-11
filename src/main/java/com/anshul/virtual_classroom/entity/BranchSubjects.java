@@ -4,6 +4,8 @@ import java.util.Arrays;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
 import org.hibernate.annotations.Type;
@@ -34,6 +36,10 @@ import lombok.ToString;
 public class BranchSubjects {
 	
 	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "branch_id")
+	private int branchId;
+	
 	private String branch;
 	
 	@Type(type = "string-array")
