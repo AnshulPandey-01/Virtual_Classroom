@@ -4,7 +4,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
-import com.anshul.virtual_classroom.utility.TestContainer;
+import com.anshul.virtual_classroom.utility.test.TestContainer;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;

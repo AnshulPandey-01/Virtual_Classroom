@@ -1,12 +1,10 @@
 package com.anshul.virtual_classroom.controllers;
 
 import java.util.Date;
-import java.util.HashMap;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import javax.persistence.EntityNotFoundException;
 
@@ -36,17 +34,17 @@ import com.anshul.virtual_classroom.repos.SubjectiveTestRepo;
 import com.anshul.virtual_classroom.repos.TestRepo;
 import com.anshul.virtual_classroom.response.Response;
 import com.anshul.virtual_classroom.response.Response.Respond;
+import com.anshul.virtual_classroom.response.test.PastTests;
+import com.anshul.virtual_classroom.response.test.ScheduledTests;
+import com.anshul.virtual_classroom.response.test.TestInfo;
+import com.anshul.virtual_classroom.response.test.TestStats;
 import com.anshul.virtual_classroom.utility.ChangePassword;
-import com.anshul.virtual_classroom.utility.MCQData;
-import com.anshul.virtual_classroom.utility.MCQTestData;
-import com.anshul.virtual_classroom.utility.MCQTestInfo;
-import com.anshul.virtual_classroom.utility.PastTests;
-import com.anshul.virtual_classroom.utility.ScheduledTests;
-import com.anshul.virtual_classroom.utility.SubjectiveTestData;
-import com.anshul.virtual_classroom.utility.TestContainer;
-import com.anshul.virtual_classroom.utility.TestDetails;
-import com.anshul.virtual_classroom.utility.TestInfo;
-import com.anshul.virtual_classroom.utility.TestStats;
+import com.anshul.virtual_classroom.utility.mcq.MCQData;
+import com.anshul.virtual_classroom.utility.mcq.MCQTestData;
+import com.anshul.virtual_classroom.utility.mcq.MCQTestInfo;
+import com.anshul.virtual_classroom.utility.subjective.SubjectiveTestData;
+import com.anshul.virtual_classroom.utility.test.TestContainer;
+import com.anshul.virtual_classroom.utility.test.TestDetails;
 
 @CrossOrigin
 @RestController
@@ -119,7 +117,7 @@ public class StudentController {
 		}
 	}
 	
-	@GetMapping("tests/rollNo/{rollNo}")
+	@GetMapping("/{rollNo}/tests")
 	public ResponseEntity<List<ScheduledTests>> getStudentTests(@PathVariable("rollNo") String rollNo){
 		Student student = sRepo.getById(rollNo);
 		List<Test> tests = tRepo.getUpComingTestsBySBS(student.getSem(), student.getBranch(), student.getSection());
@@ -243,8 +241,8 @@ public class StudentController {
 		}
 	}
 	
-	@GetMapping("past_tests/rollNo/{rollNo}")
-	public ResponseEntity<?> getStudentPastTests(@PathVariable("rollNo") String rollNo){
+	@GetMapping("/{rollNo}/past_tests")
+	public ResponseEntity<Response> getStudentPastTests(@PathVariable("rollNo") String rollNo){
 		try {
 			Student student = sRepo.getById(rollNo);
 			List<Test> tests = tRepo.getPastTestsBySBS(student.getSem(), student.getBranch(), student.getSection());
@@ -261,11 +259,9 @@ public class StudentController {
 				}
 			}
 			
-			return new ResponseEntity<>(pTests, HttpStatus.OK);
+			return new ResponseEntity<>(new Response(Respond.success.toString(), pTests), HttpStatus.OK);
 		}catch(Exception e) {
-			Map<String, String> m = new HashMap<>();
-			m.put("searchResult", "Student not found");
-			return new ResponseEntity<>(m, HttpStatus.NOT_FOUND);
+			return new ResponseEntity<>(new Response(Respond.error.toString(), "Student not found"), HttpStatus.NOT_FOUND);
 		}
 	}
 	
@@ -284,7 +280,7 @@ public class StudentController {
 		return new ResponseEntity<>(list, HttpStatus.OK);
 	}
 	
-	@GetMapping("/result/test/{testId}/rollNo/{rollNo}")
+	@GetMapping("/{rollNo}/test/{testId}/result")
 	public ResponseEntity<TestInfo> getTestResult(@PathVariable("rollNo") String rollNo, @PathVariable("testId") int testId){
 		Test t = tRepo.getByTestId(testId);
 		TestInfo info = null;

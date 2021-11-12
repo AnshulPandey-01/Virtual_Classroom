@@ -9,9 +9,9 @@ import org.springframework.stereotype.Repository;
 
 import com.anshul.virtual_classroom.entity.MCQAnswer;
 import com.anshul.virtual_classroom.utility.AnswerId;
-import com.anshul.virtual_classroom.utility.MCQTestData;
-import com.anshul.virtual_classroom.utility.MCQTestInfo;
-import com.anshul.virtual_classroom.utility.MCQTestResult;
+import com.anshul.virtual_classroom.utility.mcq.MCQTestData;
+import com.anshul.virtual_classroom.utility.mcq.MCQTestInfo;
+import com.anshul.virtual_classroom.utility.mcq.MCQTestResult;
 
 @Repository
 public interface MCQAnswerRepo extends JpaRepository<MCQAnswer, AnswerId> {
@@ -24,7 +24,7 @@ public interface MCQAnswerRepo extends JpaRepository<MCQAnswer, AnswerId> {
 	@Query(value = "select t.question_id as questionId, t.question as question, array_to_string(t.options, '|,|') as options, t.correct_option as correctOption, a.answer as answer from mcq_test t inner join mcq_answer a on t.question_id = a.question_id where a.test_id = :testId and a.roll_no = :rollNo", nativeQuery = true)
 	List<MCQTestData> getAnswers(@Param("testId") int testId, @Param("rollNo") String rollNo);
 	
-	@Query(value = "select a.roll_no as rollNo, t.correct_option as correctOption, a.answer from mcq_test t inner join mcq_answer a on t.question_id = a.question_id where a.test_id = :testId", nativeQuery = true)
+	@Query(value = "select a.roll_no as rollNo, t.correct_option as correctOption, a.answer as answer from mcq_test t inner join mcq_answer a on t.question_id = a.question_id where a.test_id = :testId", nativeQuery = true)
 	List<MCQTestInfo> getAllStudentsAnswers(@Param("testId") int testId);
 	
 	@Query(value = "select count(distinct roll_no) from mcq_answer where test_id = :testId", nativeQuery = true)

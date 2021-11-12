@@ -1,11 +1,13 @@
-package com.anshul.virtual_classroom.utility;
+package com.anshul.virtual_classroom.response.test;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
 @Getter
 @Setter
+@NoArgsConstructor
 @ToString
 public class ScheduledTests {
 	
@@ -19,8 +21,6 @@ public class ScheduledTests {
 	private int noOfQuestions;
 	private int totalMarks;
 	private int negativeMarks;
-	
-	public ScheduledTests() {}
 	
 	public ScheduledTests(int testId, String title, String subjectCode, boolean isSubjective, int duration, String scheduleOn, String resultOn, int negativeMarks) {
 		this.testId = testId;

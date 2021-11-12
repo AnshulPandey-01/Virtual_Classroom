@@ -8,8 +8,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.anshul.virtual_classroom.entity.SubjectiveTest;
-import com.anshul.virtual_classroom.utility.TestContainer;
-import com.anshul.virtual_classroom.utility.TestDetails;
+import com.anshul.virtual_classroom.utility.test.TestContainer;
+import com.anshul.virtual_classroom.utility.test.TestDetails;
 
 @Repository
 public interface SubjectiveTestRepo extends JpaRepository<SubjectiveTest, String> {
