@@ -118,7 +118,7 @@ public class StudentController {
 	}
 	
 	@GetMapping("/{rollNo}/tests")
-	public ResponseEntity<List<ScheduledTests>> getStudentTests(@PathVariable("rollNo") String rollNo){
+	public ResponseEntity<Response> getStudentTests(@PathVariable("rollNo") String rollNo){
 		Student student = sRepo.getById(rollNo);
 		List<Test> tests = tRepo.getUpComingTestsBySBS(student.getSem(), student.getBranch(), student.getSection());
 		
@@ -130,7 +130,7 @@ public class StudentController {
 				if(t.isSubjective()) {
 					TestDetails td = subRepo.getNoOfQuestionsAndMaxMarks(t.getTestId());
 					st.setNoOfQuestions(td.getNoOfQuestions());
-					st.setTotalMarks(td.getTotalMarks());
+					st.setTotalMarks(td.getMaxMarks());
 				}else {
 					st.setNoOfQuestions(mcqRepo.getNoOfQuestions(t.getTestId()));
 					st.setTotalMarks(st.getNoOfQuestions() * t.getMarks());
@@ -139,7 +139,7 @@ public class StudentController {
 			}
 		}
 		
-		return new ResponseEntity<>(s, HttpStatus.OK);
+		return new ResponseEntity<>(new Response(Respond.success.toString(), s), HttpStatus.OK);
 	}
 	
 	private boolean testTimeCheck(String dateTime, int duration){
@@ -183,7 +183,7 @@ public class StudentController {
 	}
 	
 	@GetMapping("/test/{testId}")
-	public ResponseEntity<List<TestContainer>> getTestQuestions(@PathVariable("testId") int testId){
+	public ResponseEntity<Response> getTestQuestions(@PathVariable("testId") int testId){
 		Test t = tRepo.getByTestId(testId);
 		
 		if(checkTestTime(t.getScheduleOn(), t.getDuration())) {
@@ -198,10 +198,10 @@ public class StudentController {
 					test.set(i, mcq);
 				}
 			}
-			return new ResponseEntity<>(test, HttpStatus.OK);
+			return new ResponseEntity<>(new Response(Respond.success.toString(), test), HttpStatus.OK);
 		}
 		
-		return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+		return new ResponseEntity<>(new Response(Respond.error.toString(), "Test is not started yet"), HttpStatus.FORBIDDEN);
 	}
 	
 	private boolean checkTestTime(String dateTime, int duration){
@@ -281,14 +281,14 @@ public class StudentController {
 	}
 	
 	@GetMapping("/{rollNo}/test/{testId}/result")
-	public ResponseEntity<TestInfo> getTestResult(@PathVariable("rollNo") String rollNo, @PathVariable("testId") int testId){
+	public ResponseEntity<Response> getTestResult(@PathVariable("rollNo") String rollNo, @PathVariable("testId") int testId){
 		Test t = tRepo.getByTestId(testId);
 		TestInfo info = null;
 		
 		if(!testTimeCheck(t.getResultOn(), 0)) {
 			if(t.isSubjective()) {
 				TestDetails td = subRepo.getNoOfQuestionsAndMaxMarks(testId);
-				info = new TestInfo(t.getTitle(), t.getCreatedBy(), t.getSubjectCode(), t.getScheduleOn(), t.getDuration(), td.getNoOfQuestions(), td.getTotalMarks(), -1);
+				info = new TestInfo(t.getTitle(), t.getCreatedBy(), t.getSubjectCode(), t.getScheduleOn(), t.getDuration(), td.getNoOfQuestions(), td.getMaxMarks(), -1);
 				
 				List<SubjectiveTestData> ansList = sAnsRepo.getAnswers(testId, rollNo);
 				int total = 0;
@@ -316,11 +316,11 @@ public class StudentController {
 			}
 		}
 		
-		return new ResponseEntity<>(info, HttpStatus.OK);
+		return new ResponseEntity<>(new Response(Respond.success.toString(), info), HttpStatus.OK);
 	}
 	
 	@GetMapping("/tests/stats")
-	public ResponseEntity<TestStats> getTestStats(@RequestParam("rollNo") String rollNo,
+	public ResponseEntity<Response> getTestStats(@RequestParam("rollNo") String rollNo,
 			@RequestParam("subject") String subjectCode, @RequestParam("type") String type,
 			@RequestParam("from") String from, @RequestParam("to") String to){
 		Student student = sRepo.getById(rollNo);
@@ -352,11 +352,11 @@ public class StudentController {
 						
 						Integer total = sAnsRepo.getTotalScore(test.getTestId(), rollNo);
 						total = total == null ? 0 : total;
-						percent = (double)total/td.getTotalMarks() * 100;
+						percent = (double)total/td.getMaxMarks() * 100;
 						
 						Integer allScore = sAnsRepo.getSumOfAllStudentsScore(test.getTestId());
 						allScore = allScore == null ? 0 : allScore;
-						avgPercent = (double)allScore/(count * td.getTotalMarks()) * 100;
+						avgPercent = (double)allScore/(count * td.getMaxMarks()) * 100;
 					}
 				}else {
 					int count = mAnsRepo.getAllStudents(test.getTestId());
@@ -391,10 +391,10 @@ public class StudentController {
 				response.getTitles().add(test.getTitle());
 			}
 			
-			return new ResponseEntity<>(response, HttpStatus.OK);
+			return new ResponseEntity<>(new Response(Respond.success.toString(), response), HttpStatus.OK);
 		}catch(Exception e) {
 			e.printStackTrace();
-			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.NOT_FOUND);
 		}
 		
 	}

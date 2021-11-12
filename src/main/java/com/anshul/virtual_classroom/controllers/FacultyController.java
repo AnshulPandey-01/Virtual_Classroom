@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import javax.persistence.EntityNotFoundException;
 
@@ -125,13 +126,11 @@ public class FacultyController {
 	}
 	
 	@GetMapping("/{faculty}/tests")
-	public ResponseEntity<List<Test>> getTests(@PathVariable("faculty") String name){
+	public ResponseEntity<Response> getTests(@PathVariable("faculty") String name){
 		try {
-			List<Test> list = tRepo.getScheduledTestsByFaculty(name);
-			return new ResponseEntity<>(list, HttpStatus.OK);
+			return new ResponseEntity<>(new Response(Respond.success.toString(), tRepo.getScheduledTestsByFaculty(name)), HttpStatus.OK);
 		}catch(Exception e) {
-			System.out.println(e.getMessage());
-			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
@@ -295,17 +294,24 @@ public class FacultyController {
 	}
 	
 	@GetMapping("/past_tests/{testId}/answer/{rollNo}")
-	public ResponseEntity<Map<?, ?>> getPastTestStudentAnswer(@PathVariable("testId") int testId, @PathVariable("rollNo") String rollNo){
-		Map<String, Object> map = new HashMap<>();
+	public ResponseEntity<Response> getPastTestStudentAnswer(@PathVariable("testId") int testId, @PathVariable("rollNo") String rollNo){
 		try {
-			Student student = sRepo.getById(rollNo);
-			Test test = tRepo.getById(testId);
+			Map<String, Object> map = new HashMap<>();
+			
+			Student student = sRepo.findById(rollNo).orElse(null);
+			if(Objects.isNull(student)) {
+				return new ResponseEntity<>(new Response(Respond.error.toString(), "Invalid student roll no"), HttpStatus.NOT_FOUND);
+			}
+			
+			Test test = tRepo.findById(testId).orElse(null);
+			if(Objects.isNull(test)) {
+				return new ResponseEntity<>(new Response(Respond.error.toString(), "Invalid test id"), HttpStatus.NOT_FOUND);
+			}
 			
 			map.put("rollNo", student.getRollNo());
 			map.put("name", student.getName());
 			map.put("title", test.getTitle());
 			map.put("subjectCode", test.getSubjectCode());
-			map.put("isSubjective", test.isSubjective());
 			
 			if(test.isSubjective()) {
 				Date currentDate = new Date(System.currentTimeMillis());
@@ -315,45 +321,45 @@ public class FacultyController {
 				else
 					map.put("isEditable", false);
 				
+				map.put("maxMarks", subRepo.getNoOfQuestionsAndMaxMarks(testId).getMaxMarks());
+				
 				List<SubjectiveTestData> ansList = subAnsRepo.getAnswers(testId, rollNo);
 				map.put("ansList", ansList);
 				
-				int totalMarks = 0;
+				int score = 0;
 				for(int i = 0; i<ansList.size(); i++) {
 					if(!(ansList.get(i).getScore()==-1))
-						totalMarks += ansList.get(i).getScore();
+						score += ansList.get(i).getScore();
 				}
-				map.put("totalMarks", totalMarks);
+				map.put("score", score);
 			}else {
 				map.put("isEditable", false);
+				map.put("maxMarks", mcqRepo.getNoOfQuestions(testId) * test.getMarks());
 				
 				List<MCQTestData> list = mcqAnsRepo.getAnswers(testId, rollNo);
 				
 				List<MCQData> ansList = new ArrayList<>();
-				int totalMarks = 0;
+				int score = 0;
 				for(int i = 0; i<list.size(); i++) {
 					ansList.add(new MCQData(list.get(i)));
 					if(list.get(i).getCorrectOption().equals(list.get(i).getAnswer()))
-						totalMarks += test.getMarks();
+						score += test.getMarks();
 					else if(list.get(i).getAnswer()!=null)
-						totalMarks -= test.getNegativeMarks();
+						score -= test.getNegativeMarks();
 				}
 				map.put("ansList", ansList);
-				map.put("totalMarks", totalMarks);
+				map.put("score", score);
 			}
 			
-			return new ResponseEntity<>(map, HttpStatus.OK);
+			return new ResponseEntity<>(new Response(Respond.success.toString(), map), HttpStatus.OK);
 		}catch(Exception e) {
 			System.out.println(e.getMessage());
-			map.put("error", e.getMessage());
-			return new ResponseEntity<>(map, HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
 	@PostMapping(path="/past_tests/{testId}/check/{rollNo}", consumes = {"application/json"})
-	public ResponseEntity<List<String>> markTheTest(@PathVariable("testId") int testId, @PathVariable("rollNo") String rollNo, @RequestBody List<SubjectiveAnswer> marksList) {
-		List<String> list = new ArrayList<>();
-		
+	public ResponseEntity<Response> markTheTest(@PathVariable("testId") int testId, @PathVariable("rollNo") String rollNo, @RequestBody List<SubjectiveAnswer> marksList) {		
 		try {
 			List<SubjectiveAnswer> ansList = subAnsRepo.findByRollNoAndTestId(rollNo, testId);
 			
@@ -369,11 +375,11 @@ public class FacultyController {
 			List<SubjectiveAnswer> updatedList = new ArrayList<>(map.values());
 			subAnsRepo.saveAll(updatedList);
 			
-			list.add("Updated Successfully");
-			return new ResponseEntity<>(list, HttpStatus.OK);
+			
+			return new ResponseEntity<>(new Response(Respond.success.toString(), "Updated Successfully"), HttpStatus.OK);
 		}catch (Exception e) {
-			list.add(e.getMessage());
-			return new ResponseEntity<>(list, HttpStatus.INTERNAL_SERVER_ERROR);
+			e.printStackTrace();
+			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	

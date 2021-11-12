@@ -16,7 +16,7 @@ public interface SubjectiveTestRepo extends JpaRepository<SubjectiveTest, String
 	
 	List<TestContainer> findByTestId(int testId);
 
-	@Query(value = "select count(question_id) as noOfQuestions, sum(marks) as totalMarks from Subjective_Test where test_id =:testId", nativeQuery = true)
+	@Query(value = "select count(question_id) as noOfQuestions, sum(marks) as maxMarks from Subjective_Test where test_id =:testId", nativeQuery = true)
 	TestDetails getNoOfQuestionsAndMaxMarks(@Param("testId") int testId);
 	
 }
