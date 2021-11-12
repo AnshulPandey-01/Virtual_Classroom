@@ -38,13 +38,13 @@ import com.anshul.virtual_classroom.repos.SubjectiveTestRepo;
 import com.anshul.virtual_classroom.repos.TestRepo;
 import com.anshul.virtual_classroom.response.Response;
 import com.anshul.virtual_classroom.response.Response.Respond;
+import com.anshul.virtual_classroom.response.test.PastTests;
 import com.anshul.virtual_classroom.utility.ChangePassword;
-import com.anshul.virtual_classroom.utility.MCQData;
-import com.anshul.virtual_classroom.utility.MCQTestData;
-import com.anshul.virtual_classroom.utility.MCQTestResult;
-import com.anshul.virtual_classroom.utility.PastTests;
-import com.anshul.virtual_classroom.utility.SubjectiveTestData;
-import com.anshul.virtual_classroom.utility.SubjectiveTestResult;
+import com.anshul.virtual_classroom.utility.mcq.MCQData;
+import com.anshul.virtual_classroom.utility.mcq.MCQTestData;
+import com.anshul.virtual_classroom.utility.mcq.MCQTestResult;
+import com.anshul.virtual_classroom.utility.subjective.SubjectiveTestData;
+import com.anshul.virtual_classroom.utility.subjective.SubjectiveTestResult;
 
 
 @CrossOrigin
@@ -124,7 +124,7 @@ public class FacultyController {
 		}
 	}
 	
-	@GetMapping("/tests/{faculty}")
+	@GetMapping("/{faculty}/tests")
 	public ResponseEntity<List<Test>> getTests(@PathVariable("faculty") String name){
 		try {
 			List<Test> list = tRepo.getScheduledTestsByFaculty(name);
@@ -194,17 +194,17 @@ public class FacultyController {
 		}
 	}
 	
-	@GetMapping("/past_tests/{faculty}")
-	public ResponseEntity<List<PastTests>> getFacultyPastTests(@PathVariable("faculty") String name){
+	@GetMapping("/{faculty}/past_tests")
+	public ResponseEntity<Response> getFacultyPastTests(@PathVariable("faculty") String name){
 		List<Test> list = tRepo.getPastTestsByFaculty(name);
 		List<PastTests> pTests = new ArrayList<>();
 		for(Test t : list)
 			pTests.add(new PastTests(t.getTestId(), t.getTitle(), t.getSubjectCode(), t.isSubjective(), t.getResultOn()));
 		
-		return new ResponseEntity<>(pTests, HttpStatus.OK);
+		return new ResponseEntity<>(new Response(Respond.success.toString(), pTests), HttpStatus.OK);
 	}
 	
-	@GetMapping("/past_tests/attendance/{testId}")
+	@GetMapping("/past_tests/{testId}/attendance")
 	public ResponseEntity<List<Map<String, Object>>> getTestAttendance(@PathVariable("testId") int testId){
 		List<Map<String, Object>> endResult = new ArrayList<>();
 		
@@ -294,7 +294,7 @@ public class FacultyController {
 		}
 	}
 	
-	@GetMapping("/past_tests/answer/{testId}/{rollNo}")
+	@GetMapping("/past_tests/{testId}/answer/{rollNo}")
 	public ResponseEntity<Map<?, ?>> getPastTestStudentAnswer(@PathVariable("testId") int testId, @PathVariable("rollNo") String rollNo){
 		Map<String, Object> map = new HashMap<>();
 		try {
@@ -309,7 +309,7 @@ public class FacultyController {
 			
 			if(test.isSubjective()) {
 				Date currentDate = new Date(System.currentTimeMillis());
-				Date resultDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(test.getResultOn());
+				Date resultDate = new SimpleDateFormat("yyyy-MM-dd HH:mm").parse(test.getResultOn());
 				if(resultDate.after(currentDate))
 					map.put("isEditable", true);
 				else
@@ -350,7 +350,7 @@ public class FacultyController {
 		}
 	}
 	
-	@PostMapping(path="/past_tests/check/{testId}/{rollNo}", consumes = {"application/json"})
+	@PostMapping(path="/past_tests/{testId}/check/{rollNo}", consumes = {"application/json"})
 	public ResponseEntity<List<String>> markTheTest(@PathVariable("testId") int testId, @PathVariable("rollNo") String rollNo, @RequestBody List<SubjectiveAnswer> marksList) {
 		List<String> list = new ArrayList<>();
 		

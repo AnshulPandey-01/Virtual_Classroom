@@ -8,7 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.anshul.virtual_classroom.entity.MCQTest;
-import com.anshul.virtual_classroom.utility.TestContainer;
+import com.anshul.virtual_classroom.utility.test.TestContainer;
 
 @Repository
 public interface MCQTestRepo extends JpaRepository<MCQTest, String> {

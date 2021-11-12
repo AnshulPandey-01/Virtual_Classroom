@@ -8,7 +8,7 @@ import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.hibernate.annotations.TypeDefs;
 
-import com.anshul.virtual_classroom.utility.TestContainer;
+import com.anshul.virtual_classroom.utility.test.TestContainer;
 import com.vladmihalcea.hibernate.type.array.StringArrayType;
 
 import lombok.Getter;

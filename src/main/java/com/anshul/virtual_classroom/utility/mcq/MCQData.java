@@ -1,4 +1,6 @@
-package com.anshul.virtual_classroom.utility;
+package com.anshul.virtual_classroom.utility.mcq;
+
+import com.anshul.virtual_classroom.utility.AnswerContainer;
 
 import lombok.Getter;
 import lombok.Setter;

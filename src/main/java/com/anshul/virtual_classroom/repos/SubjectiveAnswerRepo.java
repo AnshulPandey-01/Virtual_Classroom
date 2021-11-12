@@ -9,8 +9,8 @@ import org.springframework.stereotype.Repository;
 
 import com.anshul.virtual_classroom.entity.SubjectiveAnswer;
 import com.anshul.virtual_classroom.utility.AnswerId;
-import com.anshul.virtual_classroom.utility.SubjectiveTestData;
-import com.anshul.virtual_classroom.utility.SubjectiveTestResult;
+import com.anshul.virtual_classroom.utility.subjective.SubjectiveTestData;
+import com.anshul.virtual_classroom.utility.subjective.SubjectiveTestResult;
 
 @Repository
 public interface SubjectiveAnswerRepo extends JpaRepository<SubjectiveAnswer, AnswerId>{
