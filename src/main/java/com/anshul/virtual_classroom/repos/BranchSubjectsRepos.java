@@ -8,4 +8,6 @@ import com.anshul.virtual_classroom.entity.BranchSubjects;
 @Repository
 public interface BranchSubjectsRepos extends JpaRepository<BranchSubjects, Integer> {
 	
+	BranchSubjects getOneByBranch(String branch);
+	
 }
