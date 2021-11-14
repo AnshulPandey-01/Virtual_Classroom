@@ -12,6 +12,9 @@ import com.anshul.virtual_classroom.entity.Test;
 @Repository
 public interface TestRepo extends JpaRepository<Test, Integer> {
 	
+	@Query(value = "select * from Test where test_id= :testId", nativeQuery = true)
+	Test getByTestId(@Param("testId") int testId);
+	
 	@Query(value = "select * from test where TO_TIMESTAMP(schedule_on, 'YYYY-MM-DD HH24:MI:SS') + (duration * INTERVAL '1 MINUTE') > NOW() and created_by = :createdBy order by schedule_on asc", nativeQuery = true)
 	List<Test> getScheduledTestsByFaculty(String createdBy);
 	
