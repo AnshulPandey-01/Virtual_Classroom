@@ -47,6 +47,8 @@ import com.anshul.virtual_classroom.utility.mcq.MCQTestResult;
 import com.anshul.virtual_classroom.utility.subjective.SubjectiveTestData;
 import com.anshul.virtual_classroom.utility.subjective.SubjectiveTestResult;
 
+import javassist.NotFoundException;
+
 
 @CrossOrigin
 @RestController
@@ -128,7 +130,17 @@ public class FacultyController {
 	@GetMapping("/{faculty}/tests")
 	public ResponseEntity<Response> getTests(@PathVariable("faculty") String name){
 		try {
-			return new ResponseEntity<>(new Response(Respond.success.toString(), tRepo.getScheduledTestsByFaculty(name)), HttpStatus.OK);
+			Faculty faculty = fRepo.findById(name).orElse(null);
+			if(Objects.isNull(faculty)) {
+				return new ResponseEntity<>(new Response(Respond.error.toString(), "Faculty not found"), HttpStatus.NOT_FOUND);
+			}
+			
+			List<Test> tests = tRepo.getScheduledTestsByFaculty(name);
+			if(Objects.isNull(tests) || tests.size()==0) {
+				return new ResponseEntity<>(new Response(Respond.error.toString(), "No scheduled tests"), HttpStatus.NOT_FOUND);
+			}
+			
+			return new ResponseEntity<>(new Response(Respond.success.toString(), tests), HttpStatus.OK);
 		}catch(Exception e) {
 			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -174,8 +186,12 @@ public class FacultyController {
 		}
 	}
 	
-	private void sendMails(int testId) {
-		Test t = tRepo.getByTestId(testId);
+	private void sendMails(int testId) throws NotFoundException {
+		Test t = tRepo.findById(testId).orElse(null);
+		if(Objects.isNull(t)) {
+			throw new NotFoundException("Invalid test id");
+		}
+		
 		String mailBody = "Title: " + t.getTitle() + "\n" +
 				"Schedule On: " + t.getScheduleOn() + "\n" +
 				"Test ID: " + t.getTestId() + "\n" + 
@@ -187,6 +203,8 @@ public class FacultyController {
 		mailMessage.setText(mailBody);
 		
 		List<Student> students = sRepo.findBySemAndBranchAndSection(t.getSem(), t.getBranch(), t.getSection());
+		if(Objects.isNull(students) ||  students.size()==0) return ;
+		
 		for(Student s : students) {
 			mailMessage.setTo(s.getEmail());
 			mailSender.send(mailMessage);
@@ -195,7 +213,16 @@ public class FacultyController {
 	
 	@GetMapping("/{faculty}/past_tests")
 	public ResponseEntity<Response> getFacultyPastTests(@PathVariable("faculty") String name){
+		Faculty faculty = fRepo.findById(name).orElse(null);
+		if(Objects.isNull(faculty)) {
+			return new ResponseEntity<>(new Response(Respond.error.toString(), "Faculty not found"), HttpStatus.NOT_FOUND);
+		}
+		
 		List<Test> list = tRepo.getPastTestsByFaculty(name);
+		if(Objects.isNull(list) || list.size()==0) {
+			return new ResponseEntity<>(new Response(Respond.error.toString(), "No previous test record"), HttpStatus.NOT_FOUND);
+		}
+		
 		List<PastTests> pTests = new ArrayList<>();
 		for(Test t : list)
 			pTests.add(new PastTests(t.getTestId(), t.getTitle(), t.getSubjectCode(), t.isSubjective(), t.getResultOn()));
@@ -204,11 +231,15 @@ public class FacultyController {
 	}
 	
 	@GetMapping("/past_tests/{testId}/attendance")
-	public ResponseEntity<List<Map<String, Object>>> getTestAttendance(@PathVariable("testId") int testId){
-		List<Map<String, Object>> endResult = new ArrayList<>();
-		
+	public ResponseEntity<Response> getTestAttendance(@PathVariable("testId") int testId){		
 		try {
+			List<Map<String, Object>> endResult = new ArrayList<>();
+			
 			Test test = tRepo.getById(testId);
+			if(Objects.isNull(test)) {
+				return new ResponseEntity<>(new Response(Respond.error.toString(), "Invalid test id"), HttpStatus.NOT_FOUND);
+			}
+			
 			List<Student> list = sRepo.findBySemAndBranchAndSection(test.getSem(), test.getBranch(), test.getSection());
 			
 			Map<String, Map<String, Object>> map = new HashMap<>();
@@ -279,17 +310,9 @@ public class FacultyController {
 				
 			}
 			
-			return new ResponseEntity<>(endResult, HttpStatus.OK);
-		}catch(EntityNotFoundException e) {
-			Map<String, Object> m = new HashMap<>();
-			m.put("Error", "Incorrect testId");
-			endResult.add(m);
-			return new ResponseEntity<>(endResult, HttpStatus.BAD_REQUEST);
+			return new ResponseEntity<>(new Response(Respond.success.toString(), endResult), HttpStatus.OK);
 		}catch(Exception e) {
-			Map<String, Object> m = new HashMap<>();
-			m.put("Error", e.getMessage());
-			endResult.add(m);
-			return new ResponseEntity<>(endResult, HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
@@ -312,6 +335,7 @@ public class FacultyController {
 			map.put("name", student.getName());
 			map.put("title", test.getTitle());
 			map.put("subjectCode", test.getSubjectCode());
+			map.put("subjective", test.isSubjective());
 			
 			if(test.isSubjective()) {
 				Date currentDate = new Date(System.currentTimeMillis());
@@ -374,7 +398,6 @@ public class FacultyController {
 			
 			List<SubjectiveAnswer> updatedList = new ArrayList<>(map.values());
 			subAnsRepo.saveAll(updatedList);
-			
 			
 			return new ResponseEntity<>(new Response(Respond.success.toString(), "Updated Successfully"), HttpStatus.OK);
 		}catch (Exception e) {
