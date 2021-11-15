@@ -81,23 +81,23 @@ public class FacultyController {
 		
 		try {
 			Faculty faculty = fRepo.getById(f.getEmail());
-			if(faculty.isAllowed()) {
-				if(passwordEcorder.matches(f.getPassword(), faculty.getPassword())) {
+			if (faculty.isAllowed()) {
+				if (passwordEcorder.matches(f.getPassword(), faculty.getPassword())) {
 					list.add(faculty.getName());
 					list.add(faculty.getEmail());
 					return new ResponseEntity<>(list, HttpStatus.OK);
-				}else {
+				} else {
 					list.add("Incorrect Password");
 					return new ResponseEntity<>(list, HttpStatus.UNAUTHORIZED);
 				}
-			}else {
+			} else {
 				list.add("Your access is disabled");
 				return new ResponseEntity<>(list, HttpStatus.UNAUTHORIZED);
 			}
-		}catch(EntityNotFoundException e) {
+		} catch (EntityNotFoundException e) {
 			list.add("Incorrect Email");
 			return new ResponseEntity<>(list, HttpStatus.UNAUTHORIZED);
-		}catch(Exception e) {
+		} catch (Exception e) {
 			list.add(e.getMessage());
 			return new ResponseEntity<>(list, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -108,19 +108,19 @@ public class FacultyController {
 		List<String> list = new ArrayList<>();
 		try {
 			Faculty faculty = fRepo.getById((String)a.getEmail());
-			if(passwordEcorder.matches(a.getPassword(), faculty.getPassword())) {
+			if (passwordEcorder.matches(a.getPassword(), faculty.getPassword())) {
 				faculty.setPassword(passwordEcorder.encode(a.getNewPassword()));
 				fRepo.save(faculty);
 				list.add("Password Changed Successfully");
 				return new ResponseEntity<>(list, HttpStatus.OK);
-			}else {
+			} else {
 				list.add("Incorrect Password");
 				return new ResponseEntity<>(list, HttpStatus.UNAUTHORIZED);
 			}
-		}catch(EntityNotFoundException e) {
+		} catch (EntityNotFoundException e) {
 			list.add("Incorrect Email");
 			return new ResponseEntity<>(list, HttpStatus.UNAUTHORIZED);
-		}catch(Exception e) {
+		} catch (Exception e) {
 			list.add(e.getMessage());
 			return new ResponseEntity<>(list, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -129,18 +129,18 @@ public class FacultyController {
 	@GetMapping("/{faculty}/tests")
 	public ResponseEntity<Response> getTests(@PathVariable("faculty") String name){
 		try {
-			Faculty faculty = fRepo.findById(name).orElse(null);
-			if(Objects.isNull(faculty)) {
+			Faculty faculty = fRepo.findByName(name).orElse(null);
+			if (Objects.isNull(faculty)) {
 				return new ResponseEntity<>(new Response(Respond.error.toString(), "Faculty not found"), HttpStatus.NOT_FOUND);
 			}
 			
 			List<Test> tests = tRepo.getScheduledTestsByFaculty(name);
-			if(Objects.isNull(tests) || tests.size()==0) {
-				return new ResponseEntity<>(new Response(Respond.error.toString(), "No scheduled tests"), HttpStatus.NOT_FOUND);
+			if (Objects.isNull(tests) || tests.size()==0) {
+				return new ResponseEntity<>(new Response(Respond.success.toString(), "No scheduled tests"), HttpStatus.OK);
 			}
 			
 			return new ResponseEntity<>(new Response(Respond.success.toString(), tests), HttpStatus.OK);
-		}catch(Exception e) {
+		} catch(Exception e) {
 			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -148,11 +148,11 @@ public class FacultyController {
 	@PostMapping(path="/create_test", consumes = {"application/json"})
 	public ResponseEntity<Response> addTest(@RequestBody Test t) {
 		Map<String, Integer> res = new HashMap<>();
-		try{
+		try {
 			Test test = tRepo.save(t);
 			res.put("TestId", test.getTestId());
 			return new ResponseEntity<>(new Response(Respond.success.toString(), res), HttpStatus.CREATED);
-		}catch(Exception e){
+		} catch(Exception e) {
 			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -166,7 +166,7 @@ public class FacultyController {
 			mcqRepo.saveAll(m_test);
 			sendMails(m_test.get(0).getTestId());
 			return new ResponseEntity<>(new Response(Respond.success.toString(), "Created Successfully"), HttpStatus.CREATED);
-		}catch (Exception e) {
+		} catch (Exception e) {
 			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -180,14 +180,14 @@ public class FacultyController {
 			subRepo.saveAll(s_test);
 			sendMails(s_test.get(0).getTestId());
 			return new ResponseEntity<>(new Response(Respond.success.toString(), "Created Successfully"), HttpStatus.CREATED);
-		}catch (Exception e) {
+		} catch (Exception e) {
 			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
 	private void sendMails(int testId) throws NotFoundException {
 		Test t = tRepo.findById(testId).orElse(null);
-		if(Objects.isNull(t)) {
+		if (Objects.isNull(t)) {
 			throw new NotFoundException("Invalid test id");
 		}
 		
@@ -202,9 +202,9 @@ public class FacultyController {
 		mailMessage.setText(mailBody);
 		
 		List<Student> students = sRepo.findBySemAndBranchAndSection(t.getSem(), t.getBranch(), t.getSection());
-		if(Objects.isNull(students) ||  students.size()==0) return ;
+		if (Objects.isNull(students) ||  students.size()==0) return ;
 		
-		for(Student s : students) {
+		for (Student s : students) {
 			mailMessage.setTo(s.getEmail());
 			mailSender.send(mailMessage);
 		}
@@ -212,14 +212,14 @@ public class FacultyController {
 	
 	@GetMapping("/{faculty}/past_tests")
 	public ResponseEntity<Response> getFacultyPastTests(@PathVariable("faculty") String name){
-		Faculty faculty = fRepo.findById(name).orElse(null);
+		Faculty faculty = fRepo.findByName(name).orElse(null);
 		if(Objects.isNull(faculty)) {
 			return new ResponseEntity<>(new Response(Respond.error.toString(), "Faculty not found"), HttpStatus.NOT_FOUND);
 		}
 		
 		List<Test> list = tRepo.getPastTestsByFaculty(name);
 		if(Objects.isNull(list) || list.size()==0) {
-			return new ResponseEntity<>(new Response(Respond.error.toString(), "No previous test record"), HttpStatus.NOT_FOUND);
+			return new ResponseEntity<>(new Response(Respond.success.toString(), "No previous test record"), HttpStatus.OK);
 		}
 		
 		List<PastTests> pTests = new ArrayList<>();
@@ -234,7 +234,7 @@ public class FacultyController {
 		try {
 			List<Map<String, Object>> endResult = new ArrayList<>();
 			
-			Test test = tRepo.getById(testId);
+			Test test = tRepo.findById(testId).orElse(null);
 			if(Objects.isNull(test)) {
 				return new ResponseEntity<>(new Response(Respond.error.toString(), "Invalid test id"), HttpStatus.NOT_FOUND);
 			}

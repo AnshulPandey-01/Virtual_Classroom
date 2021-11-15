@@ -2,6 +2,7 @@ package com.anshul.virtual_classroom.controllers;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import javax.persistence.EntityNotFoundException;
 
@@ -129,7 +130,10 @@ public class AdminController {
 	@PostMapping(path="/change_faculty_access", consumes= {"application/json"})
 	public ResponseEntity<Response> changeFacultyAccess(@RequestBody Faculty f) {
 		try {
-			Faculty faculty = fRepo.getById(f.getEmail());
+			Faculty faculty = fRepo.findById(f.getEmail()).orElse(null);
+			if(Objects.isNull(faculty)) {
+				return new ResponseEntity<>(new Response(Respond.error.toString(), "Faculty not found"), HttpStatus.NOT_FOUND);
+			}
 			faculty.setAllowed(f.isAllowed());
 			fRepo.save(faculty);
 			String res = f.isAllowed()==true ? "Access granted" : "Access denied";
