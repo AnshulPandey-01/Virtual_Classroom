@@ -138,7 +138,7 @@ public class AdminController {
 			fRepo.save(faculty);
 			String res = f.isAllowed()==true ? "Access granted" : "Access denied";
 			return new ResponseEntity<>(new Response(Respond.success.toString(), res), HttpStatus.OK);
-		} catch(Exception e) {
+		} catch (Exception e) {
 			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -153,7 +153,7 @@ public class AdminController {
 			f.setPassword(passwordEcorder.encode(f.getPassword()));
 			fRepo.save(f);
 			return new ResponseEntity<>(new Response(Respond.success.toString(), "Faculty added successfully"), HttpStatus.CREATED);
-		} catch(Exception e) {
+		} catch (Exception e) {
 			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -172,7 +172,7 @@ public class AdminController {
 		try {
 			fRepo.saveAll(faculties);
 			return new ResponseEntity<>(new Response(Respond.success.toString(), "Faculties added successfully"), HttpStatus.CREATED);
-		} catch(Exception e) {
+		} catch (Exception e) {
 			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -199,7 +199,7 @@ public class AdminController {
 			sRepo.deleteFromSubjective(s.getRollNo());
 			sRepo.delete(s);
 			return new ResponseEntity<>(new Response(Respond.success.toString(), "Student record deleted successfully"), HttpStatus.OK);
-		} catch(Exception e) {
+		} catch (Exception e) {
 			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -214,7 +214,7 @@ public class AdminController {
 			s.setPassword(passwordEcorder.encode(s.getPassword()));
 			sRepo.save(s);
 			return new ResponseEntity<>(new Response(Respond.success.toString(), "Student added successfully"), HttpStatus.CREATED);
-		} catch(Exception e) {
+		} catch (Exception e) {
 			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -233,7 +233,7 @@ public class AdminController {
 		try {
 			sRepo.saveAll(students);
 			return new ResponseEntity<>(new Response(Respond.success.toString(), "Students added successfully"), HttpStatus.CREATED);
-		} catch(Exception e) {
+		} catch (Exception e) {
 			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
