@@ -57,7 +57,7 @@ public class AdminController {
 			a.setPassword(passwordEcorder.encode(a.getPassword()));
 			Admin admin = aRepo.save(a);
 			return new ResponseEntity<>(admin.getUsername(), HttpStatus.OK);
-		}catch(Exception e) {
+		} catch (Exception e) {
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -69,7 +69,7 @@ public class AdminController {
 		list.add("false");
 		try {
 			Admin admin = aRepo.getById(a.getEmail());
-			if(passwordEcorder.matches(a.getPassword(), admin.getPassword())) {
+			if (passwordEcorder.matches(a.getPassword(), admin.getPassword())) {
 				list.set(1, admin.getUsername());
 				list.add(admin.getEmail());
 				return new ResponseEntity<>(list, HttpStatus.OK);
@@ -77,10 +77,10 @@ public class AdminController {
 			
 			list.add("Incorrect Password");
 			return new ResponseEntity<>(list, HttpStatus.UNAUTHORIZED);
-		}catch(EntityNotFoundException e) {
+		} catch (EntityNotFoundException e) {
 			list.add("Incorrect Email");
 			return new ResponseEntity<>(list, HttpStatus.UNAUTHORIZED);
-		}catch(Exception e) {
+		} catch (Exception e) {
 			list.add(e.getMessage());
 			return new ResponseEntity<>(list, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -91,19 +91,19 @@ public class AdminController {
 		List<String> list = new ArrayList<>();
 		try {
 			Admin admin = aRepo.getById(a.getEmail());
-			if(passwordEcorder.matches(a.getPassword(), admin.getPassword())) {
+			if (passwordEcorder.matches(a.getPassword(), admin.getPassword())) {
 				admin.setPassword(passwordEcorder.encode(a.getNewPassword()));
 				aRepo.save(admin);
 				list.add("Password Changed Successfully");
 				return new ResponseEntity<>(list, HttpStatus.OK);
-			}else {
+			} else {
 				list.add("Incorrect Password");
 				return new ResponseEntity<>(list, HttpStatus.UNAUTHORIZED);
 			}
-		}catch(EntityNotFoundException e) {
+		} catch (EntityNotFoundException e) {
 			list.add("Incorrect Email");
 			return new ResponseEntity<>(list, HttpStatus.UNAUTHORIZED);
-		}catch(Exception e) {
+		} catch (Exception e) {
 			list.add(e.getMessage());
 			return new ResponseEntity<>(list, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -118,10 +118,10 @@ public class AdminController {
 	public ResponseEntity<Response> getFaculties(){
 		List<Faculty> list = fRepo.findAll();
 		
-		if(list.size()==0)
+		if (list.size()==0)
 			return new ResponseEntity<>(new Response(Respond.error.toString(), "No content"), HttpStatus.OK);
 		
-		for(Faculty f : list)
+		for (Faculty f : list)
 			f.setPassword(null);
 		
 		return new ResponseEntity<>(new Response(Respond.success.toString(), list), HttpStatus.OK);
@@ -131,21 +131,21 @@ public class AdminController {
 	public ResponseEntity<Response> changeFacultyAccess(@RequestBody Faculty f) {
 		try {
 			Faculty faculty = fRepo.findById(f.getEmail()).orElse(null);
-			if(Objects.isNull(faculty)) {
+			if (Objects.isNull(faculty)) {
 				return new ResponseEntity<>(new Response(Respond.error.toString(), "Faculty not found"), HttpStatus.NOT_FOUND);
 			}
 			faculty.setAllowed(f.isAllowed());
 			fRepo.save(faculty);
 			String res = f.isAllowed()==true ? "Access granted" : "Access denied";
 			return new ResponseEntity<>(new Response(Respond.success.toString(), res), HttpStatus.OK);
-		}catch(Exception e) {
+		} catch (Exception e) {
 			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
 	@PostMapping(path="/add/faculty", consumes= {"application/json"})
 	public ResponseEntity<Response> addFaculty(@RequestBody Faculty f) {		
-		if(fRepo.checkFacultyExists(f.getName(), f.getEmail()) >= 1) {
+		if (fRepo.checkFacultyExists(f.getName(), f.getEmail()) >= 1) {
 			return new ResponseEntity<>(new Response(Respond.error.toString(), "Faculty already exists"), HttpStatus.CONFLICT);
 		}
 		
@@ -153,18 +153,18 @@ public class AdminController {
 			f.setPassword(passwordEcorder.encode(f.getPassword()));
 			fRepo.save(f);
 			return new ResponseEntity<>(new Response(Respond.success.toString(), "Faculty added successfully"), HttpStatus.CREATED);
-		}catch(Exception e) {
+		} catch (Exception e) {
 			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
 	@PostMapping(path="/add/faculties", consumes= {"application/json"})
 	public ResponseEntity<Response> addFaculties(@RequestBody List<Faculty> faculties) {		
-		for(Faculty f : faculties){
+		for (Faculty f : faculties) {
 			if(fRepo.checkFacultyExists(f.getName(), f.getEmail()) >= 1) {
 				String res = "Faculty with Email: " + f.getEmail() + " or Name: " + f.getName() + " already exists";
 				return new ResponseEntity<>(new Response(Respond.error.toString(), res), HttpStatus.CONFLICT);
-			}else {
+			} else {
 				f.setPassword(passwordEcorder.encode(f.getPassword()));
 			}
 		}
@@ -172,7 +172,7 @@ public class AdminController {
 		try {
 			fRepo.saveAll(faculties);
 			return new ResponseEntity<>(new Response(Respond.success.toString(), "Faculties added successfully"), HttpStatus.CREATED);
-		}catch(Exception e) {
+		} catch (Exception e) {
 			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -181,10 +181,10 @@ public class AdminController {
 	public ResponseEntity<Response> getStudents(){
 		List<Student> list = sRepo.findAll();
 		
-		if(list.size()==0)
+		if (list.size()==0)
 			return new ResponseEntity<>(new Response(Respond.error.toString(), "No content"), HttpStatus.OK);
 		
-		for(Student s : list)
+		for (Student s : list)
 			s.setPassword(null);
 		
 		return new ResponseEntity<>(new Response(Respond.success.toString(), list), HttpStatus.OK);
@@ -199,14 +199,14 @@ public class AdminController {
 			sRepo.deleteFromSubjective(s.getRollNo());
 			sRepo.delete(s);
 			return new ResponseEntity<>(new Response(Respond.success.toString(), "Student record deleted successfully"), HttpStatus.OK);
-		}catch(Exception e) {
+		} catch (Exception e) {
 			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
 	@PostMapping(path="/add/student", consumes= {"application/json"})
 	public ResponseEntity<Response> addStudent(@RequestBody Student s) {		
-		if(sRepo.checkStudentExists(s.getRollNo(), s.getEmail()) >= 1) {
+		if (sRepo.checkStudentExists(s.getRollNo(), s.getEmail()) >= 1) {
 			return new ResponseEntity<>(new Response(Respond.error.toString(), "Student already exists"), HttpStatus.CONFLICT);
 		}
 		
@@ -214,18 +214,18 @@ public class AdminController {
 			s.setPassword(passwordEcorder.encode(s.getPassword()));
 			sRepo.save(s);
 			return new ResponseEntity<>(new Response(Respond.success.toString(), "Student added successfully"), HttpStatus.CREATED);
-		}catch(Exception e) {
+		} catch (Exception e) {
 			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
 	@PostMapping(path="/add/students", consumes= {"application/json"})
 	public ResponseEntity<Response> addStudents(@RequestBody List<Student> students) {		
-		for(Student s : students){
-			if(sRepo.checkStudentExists(s.getRollNo(), s.getEmail()) >= 1) {
+		for (Student s : students){
+			if (sRepo.checkStudentExists(s.getRollNo(), s.getEmail()) >= 1) {
 				String res = "Student with Email: " + s.getRollNo() + " or Roll No: " + s.getEmail() + " already exists";
 				return new ResponseEntity<>(new Response(Respond.error.toString(), res), HttpStatus.CONFLICT);
-			}else {
+			} else {
 				s.setPassword(passwordEcorder.encode(s.getPassword()));
 			}
 		}
@@ -233,7 +233,7 @@ public class AdminController {
 		try {
 			sRepo.saveAll(students);
 			return new ResponseEntity<>(new Response(Respond.success.toString(), "Students added successfully"), HttpStatus.CREATED);
-		}catch(Exception e) {
+		} catch (Exception e) {
 			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -255,7 +255,7 @@ public class AdminController {
 	
 	@RequestMapping(method = RequestMethod.PUT, value = "/update/branch_subjects", consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Response> updateBranchSubjects(@RequestBody BranchSubjects bs){
-		if(bsRepo.existsById(bs.getBranchId())) {
+		if (bsRepo.existsById(bs.getBranchId())) {
 			bsRepo.save(bs);
 			return new ResponseEntity<>(new Response(Respond.success.toString(), "Updated successfully"), HttpStatus.OK);
 		}
@@ -266,7 +266,7 @@ public class AdminController {
 	@RequestMapping(method = RequestMethod.DELETE, value = "/delete/branch_subjects")
 	public ResponseEntity<Response> deleteBranch(@RequestParam("branchId") int branchId){
 		BranchSubjects brSubs = bsRepo.findById(branchId).orElse(null);
-		if(brSubs==null) {
+		if (brSubs==null) {
 			return new ResponseEntity<>(new Response(Respond.error.toString(), "Branch does not exists"), HttpStatus.NOT_FOUND);
 		}
 		bsRepo.delete(brSubs);
