@@ -277,7 +277,7 @@ public class StudentController {
 			
 			List<Test> tests = tRepo.getPastTestsBySBS(student.getSem(), student.getBranch(), student.getSection());
 			if (Objects.isNull(tests) || tests.size()==0) {
-				return new ResponseEntity<>(new Response(Respond.error.toString(), "You haven't given any test in past"), HttpStatus.NOT_FOUND);
+				return new ResponseEntity<>(new Response(Respond.error.toString(), "You haven't given any test in past"), HttpStatus.OK);
 			}
 			
 			List<PastTests> pTests = new ArrayList<>();
