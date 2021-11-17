@@ -92,7 +92,7 @@ public class StudentController {
 				list.add("Incorrect Password");
 				return new ResponseEntity<>(list, HttpStatus.UNAUTHORIZED);
 			}
-		} catch(Exception e) {
+		} catch (Exception e) {
 			list.add(e.getMessage());
 			return new ResponseEntity<>(list, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -112,10 +112,10 @@ public class StudentController {
 				list.add("Incorrect Password");
 				return new ResponseEntity<>(list, HttpStatus.UNAUTHORIZED);
 			}
-		} catch(EntityNotFoundException e) {
+		} catch (EntityNotFoundException e) {
 			list.add("Incorrect Email");
 			return new ResponseEntity<>(list, HttpStatus.UNAUTHORIZED);
-		} catch(Exception e) {
+		} catch (Exception e) {
 			list.add(e.getMessage());
 			return new ResponseEntity<>(list, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -191,10 +191,7 @@ public class StudentController {
 			
 			if (checkTestTime(test.getScheduleOn(), test.getDuration())) {
 				if (test.getPassword().equals(t.getPassword())) {
-					List<Boolean> list = new ArrayList<>();
-					list.add(true);
-					list.add(test.isSubjective());
-					return new ResponseEntity<>(new Response(Respond.success.toString(), list), HttpStatus.OK);
+					return new ResponseEntity<>(new Response(Respond.success.toString(), test.isSubjective()), HttpStatus.OK);
 				} else {
 					return new ResponseEntity<>(new Response(Respond.error.toString(), "Incorrect password"), HttpStatus.FORBIDDEN);
 				}
@@ -203,7 +200,7 @@ public class StudentController {
 			} else {
 				return new ResponseEntity<>(new Response(Respond.error.toString(), "Test hasn't started yet"), HttpStatus.FORBIDDEN);
 			}
-		} catch(Exception e) {
+		} catch (Exception e) {
 			return new ResponseEntity<>(new Response(Respond.error.toString(), "Something went wrong"), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -255,7 +252,7 @@ public class StudentController {
 		try {
 			mAnsRepo.saveAll(answers);
 			return new ResponseEntity<>(new Response(Respond.success.toString(), "Test submited successfully"), HttpStatus.OK);
-		} catch(Exception e) {
+		} catch (Exception e) {
 			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -265,7 +262,7 @@ public class StudentController {
 		try {
 			sAnsRepo.saveAll(answers);
 			return new ResponseEntity<>(new Response(Respond.success.toString(), "Test submited successfully"), HttpStatus.OK);
-		} catch(Exception e) {
+		} catch (Exception e) {
 			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -296,7 +293,7 @@ public class StudentController {
 			}
 			
 			return new ResponseEntity<>(new Response(Respond.success.toString(), pTests), HttpStatus.OK);
-		} catch(Exception e) {
+		} catch (Exception e) {
 			return new ResponseEntity<>(new Response(Respond.error.toString(), "Student not found"), HttpStatus.NOT_FOUND);
 		}
 	}
@@ -443,7 +440,7 @@ public class StudentController {
 			}
 			
 			return new ResponseEntity<>(new Response(Respond.success.toString(), response), HttpStatus.OK);
-		} catch(Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.NOT_FOUND);
 		}
