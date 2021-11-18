@@ -16,6 +16,8 @@ public interface MCQTestRepo extends JpaRepository<MCQTest, String> {
 	List<TestContainer> findByTestId(int testId);
 	
 	@Query("select count(question_id) from MCQ_Test where test_id =:test_id")
-	int getNoOfQuestions(@Param("test_id") int test_id);
+	int getNoOfQuestions(@Param("test_id") int testId);
+	
+	boolean existsByTestId(int testId);
 	
 }

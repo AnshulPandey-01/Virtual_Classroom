@@ -48,8 +48,11 @@ public class AdminController {
 	@Autowired
 	private BranchSubjectsRepos bsRepo;
 	
-	private static BCryptPasswordEncoder passwordEcorder = new BCryptPasswordEncoder();
+	private BCryptPasswordEncoder passwordEcorder;
 	
+	public AdminController() {
+		this.passwordEcorder = new BCryptPasswordEncoder();
+	}
 	
 	@PostMapping(path="/add/admin", consumes= {"application/json"})
 	public ResponseEntity<String> addAdmin(@RequestBody Admin a) {
@@ -245,7 +248,7 @@ public class AdminController {
 	
 	@RequestMapping(method = RequestMethod.POST, value = "/add/branch_subjects", consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Response> addBranchSubjects(@RequestBody BranchSubjects bs){
-		if(bsRepo.existsById(bs.getBranchId())) {
+		if (bsRepo.existsById(bs.getBranchId())) {
 			return new ResponseEntity<>(new Response(Respond.error.toString(), "Branch already exists"), HttpStatus.CONFLICT);
 		}
 		
