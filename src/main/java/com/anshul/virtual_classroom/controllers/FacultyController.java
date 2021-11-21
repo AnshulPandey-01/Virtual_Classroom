@@ -21,11 +21,14 @@ import org.springframework.web.bind.annotation.RestController;
 import com.anshul.virtual_classroom.entity.Faculty;
 import com.anshul.virtual_classroom.entity.Test;
 import com.anshul.virtual_classroom.repos.FacultyRepo;
+import com.anshul.virtual_classroom.repos.PostRepo;
 import com.anshul.virtual_classroom.repos.TestRepo;
 import com.anshul.virtual_classroom.response.Response;
 import com.anshul.virtual_classroom.response.Response.Respond;
-import com.anshul.virtual_classroom.response.test.PastTests;
+import com.anshul.virtual_classroom.response.models.PastTests;
 import com.anshul.virtual_classroom.utility.ChangePassword;
+import com.anshul.virtual_classroom.utility.assignment.AssignmentFacultyView;
+import com.anshul.virtual_classroom.utility.post.PostFacultyView;
 
 @CrossOrigin
 @RestController
@@ -36,6 +39,8 @@ public class FacultyController {
 	private FacultyRepo fRepo;
 	@Autowired
 	private TestRepo tRepo;
+	@Autowired
+	private PostRepo postRepo;
 	
 	private BCryptPasswordEncoder passwordEcorder;
 	
@@ -131,6 +136,51 @@ public class FacultyController {
 			pTests.add(new PastTests(t.getTestId(), t.getTitle(), t.getSubjectCode(), t.isSubjective(), t.getResultOn()));
 		
 		return new ResponseEntity<>(new Response(Respond.success.toString(), pTests), HttpStatus.OK);
+	}
+	
+	@GetMapping("/{faculty}/assignments")
+	public ResponseEntity<Response> getAssignments(@PathVariable("faculty") String name){
+		Faculty faculty = fRepo.findByName(name).orElse(null);
+		if (Objects.isNull(faculty)) {
+			return new ResponseEntity<>(new Response(Respond.error.toString(), "Faculty not found"), HttpStatus.NOT_FOUND);
+		}
+		
+		List<AssignmentFacultyView> assignments = postRepo.getAssignmentsCreatedBy(name);
+		if (Objects.isNull(assignments) || assignments.size()==0) {
+			return new ResponseEntity<>(new Response(Respond.success.toString(), "No scheduled assignments"), HttpStatus.OK);
+		}
+		
+		return new ResponseEntity<>(new Response(Respond.success.toString(), assignments), HttpStatus.OK);
+	}
+	
+	@GetMapping("/{faculty}/past_assignments")
+	public ResponseEntity<Response> getPastAssignments(@PathVariable("faculty") String name){
+		Faculty faculty = fRepo.findByName(name).orElse(null);
+		if (Objects.isNull(faculty)) {
+			return new ResponseEntity<>(new Response(Respond.error.toString(), "Faculty not found"), HttpStatus.NOT_FOUND);
+		}
+		
+		List<AssignmentFacultyView> assignments = postRepo.getPastAssignmentsCreatedBy(name);
+		if (Objects.isNull(assignments) || assignments.size()==0) {
+			return new ResponseEntity<>(new Response(Respond.success.toString(), "No scheduled assignments"), HttpStatus.OK);
+		}
+		
+		return new ResponseEntity<>(new Response(Respond.success.toString(), assignments), HttpStatus.OK);
+	}
+	
+	@GetMapping("/{faculty}/posts")
+	public ResponseEntity<Response> getPosts(@PathVariable("faculty") String name){
+		Faculty faculty = fRepo.findByName(name).orElse(null);
+		if (Objects.isNull(faculty)) {
+			return new ResponseEntity<>(new Response(Respond.error.toString(), "Faculty not found"), HttpStatus.NOT_FOUND);
+		}
+		
+		List<PostFacultyView> assignments = postRepo.getPostsCreatedBy(name);
+		if (Objects.isNull(assignments) || assignments.size()==0) {
+			return new ResponseEntity<>(new Response(Respond.success.toString(), "No scheduled posts"), HttpStatus.OK);
+		}
+		
+		return new ResponseEntity<>(new Response(Respond.success.toString(), assignments), HttpStatus.OK);
 	}
 	
 }

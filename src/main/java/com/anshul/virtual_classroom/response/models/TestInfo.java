@@ -1,4 +1,4 @@
-package com.anshul.virtual_classroom.response.test;
+package com.anshul.virtual_classroom.response.models;
 
 import java.util.ArrayList;
 import java.util.List;

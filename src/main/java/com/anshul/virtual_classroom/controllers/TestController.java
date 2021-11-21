@@ -35,7 +35,7 @@ import com.anshul.virtual_classroom.repos.SubjectiveTestRepo;
 import com.anshul.virtual_classroom.repos.TestRepo;
 import com.anshul.virtual_classroom.response.Response;
 import com.anshul.virtual_classroom.response.Response.Respond;
-import com.anshul.virtual_classroom.response.test.TestStats;
+import com.anshul.virtual_classroom.response.models.TestStats;
 import com.anshul.virtual_classroom.utility.TimeUtilityService;
 import com.anshul.virtual_classroom.utility.mcq.MCQTestInfo;
 import com.anshul.virtual_classroom.utility.mcq.MCQTestResult;

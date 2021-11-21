@@ -1,4 +1,4 @@
-package com.anshul.virtual_classroom.response.test;
+package com.anshul.virtual_classroom.response.models;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
