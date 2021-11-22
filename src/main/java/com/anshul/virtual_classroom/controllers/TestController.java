@@ -10,8 +10,6 @@ import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -36,22 +34,18 @@ import com.anshul.virtual_classroom.repos.TestRepo;
 import com.anshul.virtual_classroom.response.Response;
 import com.anshul.virtual_classroom.response.Response.Respond;
 import com.anshul.virtual_classroom.response.models.TestStats;
-import com.anshul.virtual_classroom.utility.TimeUtilityService;
 import com.anshul.virtual_classroom.utility.mcq.MCQTestInfo;
 import com.anshul.virtual_classroom.utility.mcq.MCQTestResult;
+import com.anshul.virtual_classroom.utility.service.MailUtilityService;
+import com.anshul.virtual_classroom.utility.service.TimeUtilityService;
 import com.anshul.virtual_classroom.utility.subjective.SubjectiveTestResult;
 import com.anshul.virtual_classroom.utility.test.TestContainer;
 import com.anshul.virtual_classroom.utility.test.TestDetails;
-
-import javassist.NotFoundException;
 
 @CrossOrigin
 @RestController
 @RequestMapping("test")
 public class TestController {
-	
-	@Autowired
-	private JavaMailSender mailSender;
 	
 	@Autowired
 	private StudentRepo studentRepo;
@@ -66,11 +60,10 @@ public class TestController {
 	@Autowired
 	private SubjectiveAnswerRepo subAnsRepo;
 	
+	@Autowired
 	TimeUtilityService timeUtility;
-	
-	public TestController(TimeUtilityService timeUtility) {
-		this.timeUtility = timeUtility;
-	}
+	@Autowired
+	MailUtilityService mailService;
 	
 	@PostMapping(path="/create", consumes = {"application/json"})
 	public ResponseEntity<Response> addTest(@RequestBody Test t) {
@@ -85,21 +78,22 @@ public class TestController {
 	}
 	
 	@PostMapping(path="/create/mcq", consumes = {"application/json"})
-	public ResponseEntity<Response> addMCQTest(@RequestBody List<MCQTest> m_test) {
-		if(!testRepo.existsById(m_test.get(0).getTestId())) {
+	public ResponseEntity<Response> addMCQTest(@RequestBody List<MCQTest> mcqQuestions) {
+		Test test = testRepo.findById(mcqQuestions.get(0).getTestId()).orElse(null);
+		if(Objects.isNull(test)) {
 			return new ResponseEntity<>(new Response(Respond.error.toString(), "Please first create the test"), HttpStatus.NOT_FOUND);
 		}
 		
-		if(mcqTestRepo.existsByTestId(m_test.get(0).getTestId()) || subTestRepo.existsByTestId(m_test.get(0).getTestId())) {
+		if(mcqTestRepo.existsByTestId(mcqQuestions.get(0).getTestId()) || subTestRepo.existsByTestId(mcqQuestions.get(0).getTestId())) {
 			return new ResponseEntity<>(new Response(Respond.error.toString(), "Questions for this test already exists"), HttpStatus.CONFLICT);
 		}
 		
-		for(MCQTest mt : m_test) 
+		for(MCQTest mt : mcqQuestions) 
 			mt.setQuestionId(mt.getTestId() + "-" + mt.getQuestionId());
 		
 		try {
-			// sendMails(m_test.get(0).getTestId());
-			mcqTestRepo.saveAll(m_test);
+			mcqTestRepo.saveAll(mcqQuestions);
+			mailService.sendMails(test);
 			return new ResponseEntity<>(new Response(Respond.success.toString(), "Created Successfully"), HttpStatus.CREATED);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -108,50 +102,26 @@ public class TestController {
 	}
 	
 	@PostMapping(path="/create/subjective", consumes = {"application/json"})
-	public ResponseEntity<Response> addSUBTest(@RequestBody List<SubjectiveTest> s_test) {
-		if(!testRepo.existsById(s_test.get(0).getTestId())) {
+	public ResponseEntity<Response> addSUBTest(@RequestBody List<SubjectiveTest> subjectiveQuestions) {
+		Test test = testRepo.findById(subjectiveQuestions.get(0).getTestId()).orElse(null);
+		if(Objects.isNull(test)) {
 			return new ResponseEntity<>(new Response(Respond.error.toString(), "Please first create the test"), HttpStatus.NOT_FOUND);
 		}
 		
-		if(mcqTestRepo.existsByTestId(s_test.get(0).getTestId()) || subTestRepo.existsByTestId(s_test.get(0).getTestId())) {
+		if(mcqTestRepo.existsByTestId(subjectiveQuestions.get(0).getTestId()) || subTestRepo.existsByTestId(subjectiveQuestions.get(0).getTestId())) {
 			return new ResponseEntity<>(new Response(Respond.error.toString(), "Questions for this test already exists"), HttpStatus.CONFLICT);
 		}
 		
-		for(SubjectiveTest st : s_test) 
+		for(SubjectiveTest st : subjectiveQuestions) 
 			st.setQuestionId(st.getTestId() + "-" + st.getQuestionId());
 		
 		try {
-			// sendMails(s_test.get(0).getTestId());
-			subTestRepo.saveAll(s_test);
+			subTestRepo.saveAll(subjectiveQuestions);
+			mailService.sendMails(test);
 			return new ResponseEntity<>(new Response(Respond.success.toString(), "Created Successfully"), HttpStatus.CREATED);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-	}
-	
-	private void sendMails(int testId) throws NotFoundException {
-		Test t = testRepo.findById(testId).orElse(null);
-		if (Objects.isNull(t)) {
-			throw new NotFoundException("Invalid test id");
-		}
-		
-		String mailBody = "Title: " + t.getTitle() + "\n" +
-				"Schedule On: " + t.getScheduleOn() + "\n" +
-				"Test ID: " + t.getTestId() + "\n" + 
-				"Password: " + t.getPassword() + "\n";
-		
-		SimpleMailMessage mailMessage = new SimpleMailMessage();
-		mailMessage.setFrom("adgamesindia@gmail.com");
-		mailMessage.setSubject("New test from " + t.getCreatedBy());
-		mailMessage.setText(mailBody);
-		
-		List<Student> students = studentRepo.findBySemAndBranchAndSection(t.getSem(), t.getBranch(), t.getSection());
-		if (Objects.isNull(students) ||  students.size()==0) return ;
-		
-		for (Student s : students) {
-			mailMessage.setTo(s.getEmail());
-			mailSender.send(mailMessage);
 		}
 	}
 

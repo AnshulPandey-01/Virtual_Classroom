@@ -90,7 +90,7 @@ public class AdminController {
 	}
 	
 	@PostMapping(path="/change_password", consumes= {"application/json"})
-	public ResponseEntity<List<String>> changePassword(@RequestBody ChangePassword a){
+	public ResponseEntity<List<String>> changePassword(@RequestBody ChangePassword a) {
 		List<String> list = new ArrayList<>();
 		try {
 			Admin admin = aRepo.getById(a.getEmail());
@@ -112,13 +112,8 @@ public class AdminController {
 		}
 	}
 	
-	@RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/trial")
-	public ResponseEntity<Response> trialCheck(){
-		return new ResponseEntity<>(new Response(Respond.success.toString(), "Welcome to Virtual Classroom"), HttpStatus.OK);
-	}
-	
 	@GetMapping("/all/faculties")
-	public ResponseEntity<Response> getFaculties(){
+	public ResponseEntity<Response> getFaculties() {
 		List<Faculty> list = fRepo.findAll();
 		
 		if (list.size()==0)
@@ -181,7 +176,7 @@ public class AdminController {
 	}
 	
 	@GetMapping("/all/students")
-	public ResponseEntity<Response> getStudents(){
+	public ResponseEntity<Response> getStudents() {
 		List<Student> list = sRepo.findAll();
 		
 		if (list.size()==0)
@@ -242,12 +237,12 @@ public class AdminController {
 	}
 	
 	@RequestMapping(method = RequestMethod.GET, value = "/all/branch_subjects")
-	public ResponseEntity<Response> getBranchSubjects(){
+	public ResponseEntity<Response> getBranchSubjects() {
 		return new ResponseEntity<>(new Response(Respond.success.toString(), bsRepo.findAll()), HttpStatus.OK);
 	}
 	
 	@RequestMapping(method = RequestMethod.POST, value = "/add/branch_subjects", consumes = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Response> addBranchSubjects(@RequestBody BranchSubjects bs){
+	public ResponseEntity<Response> addBranchSubjects(@RequestBody BranchSubjects bs) {
 		if (bsRepo.existsById(bs.getBranchId())) {
 			return new ResponseEntity<>(new Response(Respond.error.toString(), "Branch already exists"), HttpStatus.CONFLICT);
 		}
@@ -257,7 +252,7 @@ public class AdminController {
 	}
 	
 	@RequestMapping(method = RequestMethod.PUT, value = "/update/branch_subjects", consumes = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Response> updateBranchSubjects(@RequestBody BranchSubjects bs){
+	public ResponseEntity<Response> updateBranchSubjects(@RequestBody BranchSubjects bs) {
 		if (bsRepo.existsById(bs.getBranchId())) {
 			bsRepo.save(bs);
 			return new ResponseEntity<>(new Response(Respond.success.toString(), "Updated successfully"), HttpStatus.OK);
@@ -267,7 +262,7 @@ public class AdminController {
 	}
 	
 	@RequestMapping(method = RequestMethod.DELETE, value = "/delete/branch_subjects")
-	public ResponseEntity<Response> deleteBranch(@RequestParam("branchId") int branchId){
+	public ResponseEntity<Response> deleteBranch(@RequestParam("branchId") int branchId) {
 		BranchSubjects brSubs = bsRepo.findById(branchId).orElse(null);
 		if (brSubs==null) {
 			return new ResponseEntity<>(new Response(Respond.error.toString(), "Branch does not exists"), HttpStatus.NOT_FOUND);
