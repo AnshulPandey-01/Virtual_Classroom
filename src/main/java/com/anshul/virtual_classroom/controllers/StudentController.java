@@ -39,9 +39,9 @@ import com.anshul.virtual_classroom.response.models.PastTests;
 import com.anshul.virtual_classroom.response.models.ScheduledTests;
 import com.anshul.virtual_classroom.response.models.TestInfo;
 import com.anshul.virtual_classroom.utility.ChangePassword;
-import com.anshul.virtual_classroom.utility.TimeUtilityService;
 import com.anshul.virtual_classroom.utility.mcq.MCQData;
 import com.anshul.virtual_classroom.utility.mcq.MCQTestData;
+import com.anshul.virtual_classroom.utility.service.TimeUtilityService;
 import com.anshul.virtual_classroom.utility.subjective.SubjectiveTestData;
 import com.anshul.virtual_classroom.utility.test.TestDetails;
 

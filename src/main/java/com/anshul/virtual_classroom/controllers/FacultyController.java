@@ -78,7 +78,7 @@ public class FacultyController {
 	}
 	
 	@PostMapping(path="/change_password", consumes= {"application/json"})
-	public ResponseEntity<List<String>> changePassword(@RequestBody ChangePassword a){
+	public ResponseEntity<List<String>> changePassword(@RequestBody ChangePassword a) {
 		List<String> list = new ArrayList<>();
 		try {
 			Faculty faculty = fRepo.getById((String)a.getEmail());
@@ -101,7 +101,7 @@ public class FacultyController {
 	}
 	
 	@GetMapping("/{faculty}/tests")
-	public ResponseEntity<Response> getTests(@PathVariable("faculty") String name){
+	public ResponseEntity<Response> getTests(@PathVariable("faculty") String name) {
 		try {
 			Faculty faculty = fRepo.findByName(name).orElse(null);
 			if (Objects.isNull(faculty)) {
@@ -120,7 +120,7 @@ public class FacultyController {
 	}
 	
 	@GetMapping("/{faculty}/past_tests")
-	public ResponseEntity<Response> getFacultyPastTests(@PathVariable("faculty") String name){
+	public ResponseEntity<Response> getFacultyPastTests(@PathVariable("faculty") String name) {
 		Faculty faculty = fRepo.findByName(name).orElse(null);
 		if (Objects.isNull(faculty)) {
 			return new ResponseEntity<>(new Response(Respond.error.toString(), "Faculty not found"), HttpStatus.NOT_FOUND);
@@ -139,7 +139,7 @@ public class FacultyController {
 	}
 	
 	@GetMapping("/{faculty}/assignments")
-	public ResponseEntity<Response> getAssignments(@PathVariable("faculty") String name){
+	public ResponseEntity<Response> getAssignments(@PathVariable("faculty") String name) {
 		Faculty faculty = fRepo.findByName(name).orElse(null);
 		if (Objects.isNull(faculty)) {
 			return new ResponseEntity<>(new Response(Respond.error.toString(), "Faculty not found"), HttpStatus.NOT_FOUND);
@@ -154,7 +154,7 @@ public class FacultyController {
 	}
 	
 	@GetMapping("/{faculty}/past_assignments")
-	public ResponseEntity<Response> getPastAssignments(@PathVariable("faculty") String name){
+	public ResponseEntity<Response> getPastAssignments(@PathVariable("faculty") String name) {
 		Faculty faculty = fRepo.findByName(name).orElse(null);
 		if (Objects.isNull(faculty)) {
 			return new ResponseEntity<>(new Response(Respond.error.toString(), "Faculty not found"), HttpStatus.NOT_FOUND);
@@ -169,7 +169,7 @@ public class FacultyController {
 	}
 	
 	@GetMapping("/{faculty}/posts")
-	public ResponseEntity<Response> getPosts(@PathVariable("faculty") String name){
+	public ResponseEntity<Response> getPosts(@PathVariable("faculty") String name) {
 		Faculty faculty = fRepo.findByName(name).orElse(null);
 		if (Objects.isNull(faculty)) {
 			return new ResponseEntity<>(new Response(Respond.error.toString(), "Faculty not found"), HttpStatus.NOT_FOUND);

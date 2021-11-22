@@ -1,4 +1,4 @@
-package com.anshul.virtual_classroom.utility;
+package com.anshul.virtual_classroom.utility.service;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
