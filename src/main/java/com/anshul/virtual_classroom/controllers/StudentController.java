@@ -12,6 +12,7 @@ import javax.persistence.EntityNotFoundException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -29,18 +31,20 @@ import com.anshul.virtual_classroom.entity.Test;
 import com.anshul.virtual_classroom.repos.BranchSubjectsRepos;
 import com.anshul.virtual_classroom.repos.MCQAnswerRepo;
 import com.anshul.virtual_classroom.repos.MCQTestRepo;
+import com.anshul.virtual_classroom.repos.PostRepo;
 import com.anshul.virtual_classroom.repos.StudentRepo;
 import com.anshul.virtual_classroom.repos.SubjectiveAnswerRepo;
 import com.anshul.virtual_classroom.repos.SubjectiveTestRepo;
 import com.anshul.virtual_classroom.repos.TestRepo;
 import com.anshul.virtual_classroom.response.Response;
-import com.anshul.virtual_classroom.response.Response.Respond;
+import com.anshul.virtual_classroom.response.Response.Status;
 import com.anshul.virtual_classroom.response.models.PastTests;
 import com.anshul.virtual_classroom.response.models.ScheduledTests;
 import com.anshul.virtual_classroom.response.models.TestInfo;
 import com.anshul.virtual_classroom.utility.ChangePassword;
 import com.anshul.virtual_classroom.utility.mcq.MCQData;
 import com.anshul.virtual_classroom.utility.mcq.MCQTestData;
+import com.anshul.virtual_classroom.utility.post.PostStudentView;
 import com.anshul.virtual_classroom.utility.service.TimeUtilityService;
 import com.anshul.virtual_classroom.utility.subjective.SubjectiveTestData;
 import com.anshul.virtual_classroom.utility.test.TestDetails;
@@ -64,13 +68,15 @@ public class StudentController {
 	private MCQAnswerRepo mAnsRepo;
 	@Autowired
 	private SubjectiveAnswerRepo sAnsRepo;
+	@Autowired
+	private PostRepo postRepo;
 	
+	@Autowired
 	private TimeUtilityService timeUtility;
 	
 	private BCryptPasswordEncoder passwordEcorder;
 	
-	public StudentController(TimeUtilityService timeUtility) {
-		this.timeUtility = timeUtility;
+	public StudentController() {
 		this.passwordEcorder = new BCryptPasswordEncoder();
 	}
 	
@@ -126,23 +132,23 @@ public class StudentController {
 	public ResponseEntity<Response> getStudentSubjects(@RequestParam("rollNo") String rollNo){
 		Student student = sRepo.findById(rollNo).orElse(null);
 		if (Objects.isNull(student)) {
-			return new ResponseEntity<>(new Response(Respond.error.toString(), "Student not found"), HttpStatus.NOT_FOUND);
+			return new ResponseEntity<>(new Response(Status.error, "Student not found"), HttpStatus.NOT_FOUND);
 		}
 		
 		String[] subjects = bsRepo.getOneByBranch(student.getBranch()).getSubjects();
-		return new ResponseEntity<>(new Response(Respond.success.toString(), subjects), HttpStatus.OK);
+		return new ResponseEntity<>(new Response(Status.success, subjects), HttpStatus.OK);
 	}
 	
 	@GetMapping("/{rollNo}/tests")
 	public ResponseEntity<Response> getStudentTests(@PathVariable("rollNo") String rollNo){
 		Student student = sRepo.findById(rollNo).orElse(null);
 		if (Objects.isNull(student)) {
-			return new ResponseEntity<>(new Response(Respond.error.toString(), "Student not found"), HttpStatus.NOT_FOUND);
+			return new ResponseEntity<>(new Response(Status.error, "Student not found"), HttpStatus.NOT_FOUND);
 		}
 		
 		List<Test> tests = tRepo.getUpComingTestsBySBS(student.getSem(), student.getBranch(), student.getSection());
 		if (Objects.isNull(tests) || tests.size()==0) {
-			return new ResponseEntity<>(new Response(Respond.success.toString(), "No scheduled tests"), HttpStatus.OK);
+			return new ResponseEntity<>(new Response(Status.success, "No scheduled tests"), HttpStatus.OK);
 		}
 		
 		List<ScheduledTests> s = new ArrayList<>();
@@ -162,7 +168,7 @@ public class StudentController {
 			}
 		}
 		
-		return new ResponseEntity<>(new Response(Respond.success.toString(), s), HttpStatus.OK);
+		return new ResponseEntity<>(new Response(Status.success, s), HttpStatus.OK);
 	}
 	
 	@GetMapping("/{rollNo}/past_tests")
@@ -170,12 +176,12 @@ public class StudentController {
 		try {
 			Student student = sRepo.findById(rollNo).orElse(null);
 			if (Objects.isNull(student)) {
-				return new ResponseEntity<>(new Response(Respond.error.toString(), "Student not found"), HttpStatus.NOT_FOUND);
+				return new ResponseEntity<>(new Response(Status.error, "Student not found"), HttpStatus.NOT_FOUND);
 			}
 			
 			List<Test> tests = tRepo.getPastTestsBySBS(student.getSem(), student.getBranch(), student.getSection());
 			if (Objects.isNull(tests) || tests.size()==0) {
-				return new ResponseEntity<>(new Response(Respond.success.toString(), "You haven't given any test in past"), HttpStatus.OK);
+				return new ResponseEntity<>(new Response(Status.success, "You haven't given any test in past"), HttpStatus.OK);
 			}
 			
 			List<PastTests> pTests = new ArrayList<>();
@@ -190,9 +196,9 @@ public class StudentController {
 				}
 			}
 			
-			return new ResponseEntity<>(new Response(Respond.success.toString(), pTests), HttpStatus.OK);
+			return new ResponseEntity<>(new Response(Status.success, pTests), HttpStatus.OK);
 		} catch (Exception e) {
-			return new ResponseEntity<>(new Response(Respond.error.toString(), "Student not found"), HttpStatus.NOT_FOUND);
+			return new ResponseEntity<>(new Response(Status.error, "Student not found"), HttpStatus.NOT_FOUND);
 		}
 	}
 	
@@ -200,12 +206,12 @@ public class StudentController {
 	public ResponseEntity<Response> getTestResult(@PathVariable("rollNo") String rollNo, @PathVariable("testId") int testId){
 		Student student = sRepo.findById(rollNo).orElse(null);
 		if (Objects.isNull(student)) {
-			return new ResponseEntity<>(new Response(Respond.error.toString(), "Student not found"), HttpStatus.NOT_FOUND);
+			return new ResponseEntity<>(new Response(Status.error, "Student not found"), HttpStatus.NOT_FOUND);
 		}
 		
 		Test test = tRepo.findById(testId).orElse(null);
 		if (Objects.isNull(test)) {
-			return new ResponseEntity<>(new Response(Respond.error.toString(), "Invalid test id"), HttpStatus.NOT_FOUND);
+			return new ResponseEntity<>(new Response(Status.error, "Invalid test id"), HttpStatus.NOT_FOUND);
 		}
 		
 		TestInfo info = null;
@@ -240,7 +246,7 @@ public class StudentController {
 			}
 		}
 		
-		return new ResponseEntity<>(new Response(Respond.success.toString(), info), HttpStatus.OK);
+		return new ResponseEntity<>(new Response(Status.success, info), HttpStatus.OK);
 	}
 	
 	@GetMapping("/{rollNo}/past_tests/{testId}/answer")
@@ -250,12 +256,12 @@ public class StudentController {
 			
 			Student student = sRepo.findById(rollNo).orElse(null);
 			if (Objects.isNull(student)) {
-				return new ResponseEntity<>(new Response(Respond.error.toString(), "Invalid student roll no"), HttpStatus.NOT_FOUND);
+				return new ResponseEntity<>(new Response(Status.error, "Invalid student roll no"), HttpStatus.NOT_FOUND);
 			}
 			
 			Test test = tRepo.findById(testId).orElse(null);
 			if (Objects.isNull(test)) {
-				return new ResponseEntity<>(new Response(Respond.error.toString(), "Invalid test id"), HttpStatus.NOT_FOUND);
+				return new ResponseEntity<>(new Response(Status.error, "Invalid test id"), HttpStatus.NOT_FOUND);
 			}
 			
 			map.put("rollNo", student.getRollNo());
@@ -302,17 +308,30 @@ public class StudentController {
 				map.put("score", score);
 			}
 			
-			return new ResponseEntity<>(new Response(Respond.success.toString(), map), HttpStatus.OK);
+			return new ResponseEntity<>(new Response(Status.success, map), HttpStatus.OK);
 		} catch(Exception e) {
 			System.out.println(e.getMessage());
-			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(new Response(Status.error, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
 	@PostMapping(path="/{rollNo}/past_tests/{testId}/check", consumes = {"application/json"})
-	public ResponseEntity<Response> markTheTest(@PathVariable("testId") int testId, @PathVariable("rollNo") String rollNo, @RequestBody List<SubjectiveAnswer> marksList) {		
+	public ResponseEntity<Response> markTheTest(@PathVariable("rollNo") String rollNo, @PathVariable("testId") int testId, @RequestBody List<SubjectiveAnswer> marksList) {		
 		try {
+			Student student = sRepo.findById(rollNo).orElse(null);
+			if (Objects.isNull(student)) {
+				return new ResponseEntity<>(new Response(Status.error, "Invalid student roll no"), HttpStatus.NOT_FOUND);
+			}
+			
+			Test test = tRepo.findById(testId).orElse(null);
+			if (Objects.isNull(test)) {
+				return new ResponseEntity<>(new Response(Status.error, "Invalid test id"), HttpStatus.NOT_FOUND);
+			}
+			
 			List<SubjectiveAnswer> ansList = sAnsRepo.findByRollNoAndTestId(rollNo, testId);
+			if (Objects.isNull(ansList) || ansList.isEmpty()) {
+				return new ResponseEntity<>(new Response(Status.error, "Student hasn't given the test"), HttpStatus.NOT_FOUND);
+			}
 			
 			Map<String, SubjectiveAnswer> map = new HashMap<>();
 			for (SubjectiveAnswer ans : ansList) 
@@ -326,11 +345,26 @@ public class StudentController {
 			List<SubjectiveAnswer> updatedList = new ArrayList<>(map.values());
 			sAnsRepo.saveAll(updatedList);
 			
-			return new ResponseEntity<>(new Response(Respond.success.toString(), "Updated Successfully"), HttpStatus.OK);
+			return new ResponseEntity<>(new Response(Status.success, "Updated Successfully"), HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();
-			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(new Response(Status.error, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+	}
+	
+	@RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/{rollNo}/posts")
+	public ResponseEntity<Response> getPosts(@PathVariable("rollNo") String rollNo){
+		Student student = sRepo.findById(rollNo).orElse(null);
+		if (Objects.isNull(student)) {
+			return new ResponseEntity<>(new Response(Status.error, "Invalid student roll no"), HttpStatus.NOT_FOUND);
+		}
+		
+		List<PostStudentView> posts = postRepo.getPostsBySBS(student.getSem(), student.getBranch(), student.getSection());
+		if(Objects.isNull(posts) || posts.isEmpty()) {
+			return new ResponseEntity<>(new Response(Status.success, "No posts available"), HttpStatus.OK);
+		}
+		
+		return new ResponseEntity<>(new Response(Status.success, posts), HttpStatus.OK);
 	}
 	
 }

@@ -13,6 +13,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import net.bytebuddy.utility.RandomString;
 
 @Getter
 @Setter
@@ -24,6 +25,9 @@ public class Post {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
+	
+	@Column(name = "unique_key", unique = true, nullable = false)
+	private String uniqueKey;
 	
 	@Column(name = "is_assignment")
 	private boolean isAssignment;
@@ -45,10 +49,10 @@ public class Post {
 	@Column(nullable = true, columnDefinition = "oid")
 	private byte[] attachment;
 	
-	@Column(name = "assign_time", nullable = true)
+	@Column(name = "assign_time")
 	private String assignTime;
 	
-	@Column(name = "due_time", nullable = true)
+	@Column(name = "due_time")
 	private String dueTime;
 	
 	@Column(nullable = false)
@@ -63,11 +67,11 @@ public class Post {
 	@Column(name = "subject_code", nullable = false)
 	private String subjectCode;
 	
-	@Column(nullable = true)
 	private int marks;
 	
 	public Post(boolean isAssignment, String createdBy, String createdAt, String title, String content,
 			int sem, String branch, String section, String subjectCode) {
+		this.uniqueKey = title.charAt(title.length()-1) + RandomString.make(6) + title.charAt(0);
 		this.isAssignment = isAssignment;
 		this.createdBy = createdBy;
 		this.createdAt = createdAt;

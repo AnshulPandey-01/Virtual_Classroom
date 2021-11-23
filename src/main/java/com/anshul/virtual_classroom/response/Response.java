@@ -9,18 +9,18 @@ import lombok.Setter;
 @AllArgsConstructor
 public class Response {
 	
-	public enum Respond{
+	public enum Status {
 		success("success"),
 		error("error");
 		
-		private final String res;
+		private final String st;
 		
-		Respond(final String res) {
-	        this.res = res;
-	    }
+		Status(final String st) {
+			this.st = st;
+		}
 	}
 	
-	private String message;
+	private Status status;
 	private Object response;
 	
 }

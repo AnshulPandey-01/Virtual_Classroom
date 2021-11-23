@@ -66,7 +66,7 @@ public class MailUtilityService {
 			mailBody = "Title: " + post.getTitle() + "\n" + 
 					"Subject code: " + post.getSubjectCode();
 			if(Objects.nonNull(post.getAttachment())) {
-				mailBody += "\n" + "View Attachment: " + HOST_URL + "/post/attachment/" + post.getId();
+				mailBody += "\n" + "View Attachment: " + HOST_URL + "/post/attachment/" + post.getUniqueKey();
 			}
 		}
 		

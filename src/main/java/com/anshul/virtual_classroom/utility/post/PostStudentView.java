@@ -1,13 +1,13 @@
 package com.anshul.virtual_classroom.utility.post;
 
-public interface PostFacultyView {
-
+public interface PostStudentView {
+	
 	public String getUniqueKey();
 	public String getTitle();
 	public String getContent();
-	public boolean getAttachment();
+	public String getCreatedBy();
 	public String getCreatedAt();
 	public String getSubjectCode();
-	public String getSection();
+	public boolean getAttachment();
 	
 }
