@@ -29,7 +29,7 @@ public class Post {
 	@Column(name = "unique_key", unique = true, nullable = false)
 	private String uniqueKey;
 	
-	@Column(name = "is_assignment")
+	@Column(name = "is_assignment", nullable = false)
 	private boolean isAssignment;
 	
 	@Column(name = "created_by", nullable = false)
@@ -46,7 +46,7 @@ public class Post {
 	
 	@Lob
 	@Type(type="org.hibernate.type.MaterializedBlobType")
-	@Column(nullable = true, columnDefinition = "oid")
+	@Column(columnDefinition = "oid")
 	private byte[] attachment;
 	
 	@Column(name = "assign_time")

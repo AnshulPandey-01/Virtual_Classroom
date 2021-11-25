@@ -25,7 +25,7 @@ import com.anshul.virtual_classroom.repos.PostRepo;
 import com.anshul.virtual_classroom.repos.TestRepo;
 import com.anshul.virtual_classroom.response.Response;
 import com.anshul.virtual_classroom.response.Response.Status;
-import com.anshul.virtual_classroom.response.models.PastTests;
+import com.anshul.virtual_classroom.response.test.PastTests;
 import com.anshul.virtual_classroom.utility.ChangePassword;
 import com.anshul.virtual_classroom.utility.assignment.AssignmentFacultyView;
 import com.anshul.virtual_classroom.utility.post.PostFacultyView;
