@@ -21,14 +21,10 @@ public class TimeUtilityService {
 	}
 
 	public boolean testTimeCheck(String dateTime, int duration){
-		try {
-			//System.out.println(dateTime + " | " + duration);
-			
+		try {			
 			Date scheduleTime = formatter.parse(dateTime);
 			Date endTime = new Date(scheduleTime.getTime() + duration * ONE_MINUTE_IN_MILLIS);
 			Date currentTime = new Date(System.currentTimeMillis());
-			
-			//System.out.println(currentTime + " | " + scheduleTime + " | " + endTime);
 			
 			return currentTime.before(endTime);
 		} catch (Exception e) {
@@ -38,18 +34,27 @@ public class TimeUtilityService {
 	}
 	
 	public boolean checkTestTime(String dateTime, int duration){
-		try {
-			//System.out.println(dateTime + " | " + duration);
-			
+		try {			
 			Date currentDate = new Date(System.currentTimeMillis());
 			Date scheduleDate = formatter.parse(dateTime);
 			Date endDate = new Date(scheduleDate.getTime() + duration * ONE_MINUTE_IN_MILLIS);
 			
-			//System.out.println(currentDate + " | " + scheduleDate + " | " + endDate);
-			
 			return scheduleDate.before(currentDate) && endDate.after(currentDate);
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
+			return false;
+		}
+	}
+	
+	public boolean checkTimeInBetween(String start, String end) {
+		try {
+			Date currentTime = new Date(System.currentTimeMillis());
+			Date startTime = formatter.parse(start);
+			Date endTime = formatter.parse(end);
+			
+			return currentTime.after(startTime) && currentTime.before(endTime);
+		} catch (Exception e) {
+			e.printStackTrace();
 			return false;
 		}
 	}

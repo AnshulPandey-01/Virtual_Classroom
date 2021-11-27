@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.anshul.virtual_classroom.response.Response;
-import com.anshul.virtual_classroom.response.Response.Respond;
+import com.anshul.virtual_classroom.response.Response.Status;
 
 @CrossOrigin
 @Controller
@@ -31,7 +31,7 @@ public class MainController {
 	
 	@RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/")
 	public ResponseEntity<Response> welcome(){
-		return new ResponseEntity<>(new Response(Respond.success.toString(), "Welcome to Virtual Classroom"), HttpStatus.OK);
+		return new ResponseEntity<>(new Response(Status.success, "Welcome to Virtual Classroom"), HttpStatus.OK);
 	}
 	
 	@ResponseBody

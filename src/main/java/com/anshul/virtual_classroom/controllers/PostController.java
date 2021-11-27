@@ -25,7 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.anshul.virtual_classroom.entity.Post;
 import com.anshul.virtual_classroom.repos.PostRepo;
 import com.anshul.virtual_classroom.response.Response;
-import com.anshul.virtual_classroom.response.Response.Respond;
+import com.anshul.virtual_classroom.response.Response.Status;
 import com.anshul.virtual_classroom.utility.service.MailUtilityService;
 import com.anshul.virtual_classroom.utility.service.TimeUtilityService;
 
@@ -54,19 +54,19 @@ public class PostController {
 			}
 			postRepo.save(post);
 			
-			mailService.sendMails(post, request);
+//			mailService.sendMails(post, request);
 			
-			return new ResponseEntity<>(new Response(Respond.success.toString(), "Post created successfully"), HttpStatus.CREATED);
+			return new ResponseEntity<>(new Response(Status.success, "Post created successfully"), HttpStatus.CREATED);
 		} catch (Exception e) {
 			e.printStackTrace();
-			return new ResponseEntity<>(new Response(Respond.error.toString(), "An error occured please try again"), HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(new Response(Status.error, "An error occured please try again"), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
 	@Transactional(readOnly=true)
-	@RequestMapping(method = RequestMethod.GET, value = "/attachment/{id}")
-	public ResponseEntity<byte[]> getAssignments(@PathVariable("id") int id, HttpServletResponse response) {
-		Post post = postRepo.findByIdAndIsAssignment(id, Boolean.FALSE).orElse(null);
+	@RequestMapping(method = RequestMethod.GET, value = "/attachment/{uniqueKey}")
+	public ResponseEntity<byte[]> getAssignments(@PathVariable("uniqueKey") String uniqueKey, HttpServletResponse response) {
+		Post post = postRepo.findByUniqueKeyAndIsAssignment(uniqueKey, Boolean.FALSE).orElse(null);
 		if(Objects.isNull(post) || Objects.isNull(post.getAttachment())) {
 			return ResponseEntity.notFound().build();
 		}

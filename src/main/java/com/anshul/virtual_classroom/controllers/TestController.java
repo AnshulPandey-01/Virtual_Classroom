@@ -32,8 +32,8 @@ import com.anshul.virtual_classroom.repos.SubjectiveAnswerRepo;
 import com.anshul.virtual_classroom.repos.SubjectiveTestRepo;
 import com.anshul.virtual_classroom.repos.TestRepo;
 import com.anshul.virtual_classroom.response.Response;
-import com.anshul.virtual_classroom.response.Response.Respond;
-import com.anshul.virtual_classroom.response.models.TestStats;
+import com.anshul.virtual_classroom.response.Response.Status;
+import com.anshul.virtual_classroom.response.test.TestStats;
 import com.anshul.virtual_classroom.utility.mcq.MCQTestInfo;
 import com.anshul.virtual_classroom.utility.mcq.MCQTestResult;
 import com.anshul.virtual_classroom.utility.service.MailUtilityService;
@@ -71,9 +71,9 @@ public class TestController {
 		try {
 			Test test = testRepo.save(t);
 			res.put("TestId", test.getTestId());
-			return new ResponseEntity<>(new Response(Respond.success.toString(), res), HttpStatus.CREATED);
+			return new ResponseEntity<>(new Response(Status.success, res), HttpStatus.CREATED);
 		} catch (Exception e) {
-			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(new Response(Status.error, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
@@ -81,11 +81,11 @@ public class TestController {
 	public ResponseEntity<Response> addMCQTest(@RequestBody List<MCQTest> mcqQuestions) {
 		Test test = testRepo.findById(mcqQuestions.get(0).getTestId()).orElse(null);
 		if(Objects.isNull(test)) {
-			return new ResponseEntity<>(new Response(Respond.error.toString(), "Please first create the test"), HttpStatus.NOT_FOUND);
+			return new ResponseEntity<>(new Response(Status.error, "Please first create the test"), HttpStatus.NOT_FOUND);
 		}
 		
 		if(mcqTestRepo.existsByTestId(mcqQuestions.get(0).getTestId()) || subTestRepo.existsByTestId(mcqQuestions.get(0).getTestId())) {
-			return new ResponseEntity<>(new Response(Respond.error.toString(), "Questions for this test already exists"), HttpStatus.CONFLICT);
+			return new ResponseEntity<>(new Response(Status.error, "Questions for this test already exists"), HttpStatus.CONFLICT);
 		}
 		
 		for(MCQTest mt : mcqQuestions) 
@@ -94,10 +94,10 @@ public class TestController {
 		try {
 			mcqTestRepo.saveAll(mcqQuestions);
 			mailService.sendMails(test);
-			return new ResponseEntity<>(new Response(Respond.success.toString(), "Created Successfully"), HttpStatus.CREATED);
+			return new ResponseEntity<>(new Response(Status.success, "Created Successfully"), HttpStatus.CREATED);
 		} catch (Exception e) {
 			e.printStackTrace();
-			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(new Response(Status.error, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
@@ -105,11 +105,11 @@ public class TestController {
 	public ResponseEntity<Response> addSUBTest(@RequestBody List<SubjectiveTest> subjectiveQuestions) {
 		Test test = testRepo.findById(subjectiveQuestions.get(0).getTestId()).orElse(null);
 		if(Objects.isNull(test)) {
-			return new ResponseEntity<>(new Response(Respond.error.toString(), "Please first create the test"), HttpStatus.NOT_FOUND);
+			return new ResponseEntity<>(new Response(Status.error, "Please first create the test"), HttpStatus.NOT_FOUND);
 		}
 		
 		if(mcqTestRepo.existsByTestId(subjectiveQuestions.get(0).getTestId()) || subTestRepo.existsByTestId(subjectiveQuestions.get(0).getTestId())) {
-			return new ResponseEntity<>(new Response(Respond.error.toString(), "Questions for this test already exists"), HttpStatus.CONFLICT);
+			return new ResponseEntity<>(new Response(Status.error, "Questions for this test already exists"), HttpStatus.CONFLICT);
 		}
 		
 		for(SubjectiveTest st : subjectiveQuestions) 
@@ -118,10 +118,10 @@ public class TestController {
 		try {
 			subTestRepo.saveAll(subjectiveQuestions);
 			mailService.sendMails(test);
-			return new ResponseEntity<>(new Response(Respond.success.toString(), "Created Successfully"), HttpStatus.CREATED);
+			return new ResponseEntity<>(new Response(Status.success, "Created Successfully"), HttpStatus.CREATED);
 		} catch (Exception e) {
 			e.printStackTrace();
-			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(new Response(Status.error, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -130,22 +130,22 @@ public class TestController {
 		try {
 			Test test = testRepo.findById(t.getTestId()).orElse(null);
 			if (Objects.isNull(test)) {
-				return new ResponseEntity<>(new Response(Respond.error.toString(), "Invalid test id"), HttpStatus.NOT_FOUND);
+				return new ResponseEntity<>(new Response(Status.error, "Invalid test id"), HttpStatus.NOT_FOUND);
 			}
 			
 			if (timeUtility.checkTestTime(test.getScheduleOn(), test.getDuration())) {
 				if (test.getPassword().equals(t.getPassword())) {
-					return new ResponseEntity<>(new Response(Respond.success.toString(), test.isSubjective()), HttpStatus.OK);
+					return new ResponseEntity<>(new Response(Status.success, test.isSubjective()), HttpStatus.OK);
 				} else {
-					return new ResponseEntity<>(new Response(Respond.error.toString(), "Incorrect password"), HttpStatus.FORBIDDEN);
+					return new ResponseEntity<>(new Response(Status.error, "Incorrect password"), HttpStatus.FORBIDDEN);
 				}
 			} else if (!timeUtility.testTimeCheck(test.getScheduleOn(), test.getDuration())) {
-				return new ResponseEntity<>(new Response(Respond.error.toString(), "Test has been finished"), HttpStatus.FORBIDDEN);
+				return new ResponseEntity<>(new Response(Status.error, "Test has been finished"), HttpStatus.FORBIDDEN);
 			} else {
-				return new ResponseEntity<>(new Response(Respond.error.toString(), "Test hasn't started yet"), HttpStatus.FORBIDDEN);
+				return new ResponseEntity<>(new Response(Status.error, "Test hasn't started yet"), HttpStatus.FORBIDDEN);
 			}
 		} catch (Exception e) {
-			return new ResponseEntity<>(new Response(Respond.error.toString(), "Something went wrong"), HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(new Response(Status.error, "Something went wrong"), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
@@ -153,7 +153,7 @@ public class TestController {
 	public ResponseEntity<Response> getTestQuestions(@PathVariable("testId") int testId){
 		Test test = testRepo.findById(testId).orElse(null);
 		if (Objects.isNull(test)) {
-			return new ResponseEntity<>(new Response(Respond.error.toString(), "Invalid test id"), HttpStatus.NOT_FOUND);
+			return new ResponseEntity<>(new Response(Status.error, "Invalid test id"), HttpStatus.NOT_FOUND);
 		}
 		
 		if (timeUtility.checkTestTime(test.getScheduleOn(), test.getDuration())) {
@@ -168,11 +168,11 @@ public class TestController {
 					questions.set(i, mcq);
 				}
 			}
-			return new ResponseEntity<>(new Response(Respond.success.toString(), questions), HttpStatus.OK);
+			return new ResponseEntity<>(new Response(Status.success, questions), HttpStatus.OK);
 		} else if (!timeUtility.testTimeCheck(test.getScheduleOn(), test.getDuration())) {
-			return new ResponseEntity<>(new Response(Respond.error.toString(), "Test has been finished"), HttpStatus.FORBIDDEN);
+			return new ResponseEntity<>(new Response(Status.error, "Test has been finished"), HttpStatus.FORBIDDEN);
 		} else {
-			return new ResponseEntity<>(new Response(Respond.error.toString(), "Test is not started yet"), HttpStatus.FORBIDDEN);
+			return new ResponseEntity<>(new Response(Status.error, "Test is not started yet"), HttpStatus.FORBIDDEN);
 		}
 	}
 	
@@ -180,9 +180,9 @@ public class TestController {
 	public ResponseEntity<Response> submitMCQTest(@RequestBody List<MCQAnswer> answers) {
 		try {
 			mcqAnsRepo.saveAll(answers);
-			return new ResponseEntity<>(new Response(Respond.success.toString(), "Test submited successfully"), HttpStatus.OK);
+			return new ResponseEntity<>(new Response(Status.success, "Test submited successfully"), HttpStatus.OK);
 		} catch (Exception e) {
-			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(new Response(Status.error, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
@@ -190,9 +190,9 @@ public class TestController {
 	public ResponseEntity<Response> submitSubTest(@RequestBody List<SubjectiveAnswer> answers) {
 		try {
 			subAnsRepo.saveAll(answers);
-			return new ResponseEntity<>(new Response(Respond.success.toString(), "Test submited successfully"), HttpStatus.OK);
+			return new ResponseEntity<>(new Response(Status.success, "Test submited successfully"), HttpStatus.OK);
 		} catch (Exception e) {
-			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(new Response(Status.error, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
@@ -218,7 +218,7 @@ public class TestController {
 			
 			Test test = testRepo.findById(testId).orElse(null);
 			if (Objects.isNull(test)) {
-				return new ResponseEntity<>(new Response(Respond.error.toString(), "Invalid test id"), HttpStatus.NOT_FOUND);
+				return new ResponseEntity<>(new Response(Status.error, "Invalid test id"), HttpStatus.NOT_FOUND);
 			}
 			
 			List<Student> list = studentRepo.findBySemAndBranchAndSection(test.getSem(), test.getBranch(), test.getSection());
@@ -291,9 +291,9 @@ public class TestController {
 				
 			}
 			
-			return new ResponseEntity<>(new Response(Respond.success.toString(), endResult), HttpStatus.OK);
+			return new ResponseEntity<>(new Response(Status.success, endResult), HttpStatus.OK);
 		} catch (Exception e) {
-			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(new Response(Status.error, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
@@ -303,13 +303,13 @@ public class TestController {
 			@RequestParam("from") String from, @RequestParam("to") String to){
 		Student student = studentRepo.findById(rollNo).orElse(null);
 		if (Objects.isNull(student)) {
-			return new ResponseEntity<>(new Response(Respond.error.toString(), "Student not found"), HttpStatus.NOT_FOUND);
+			return new ResponseEntity<>(new Response(Status.error, "Student not found"), HttpStatus.NOT_FOUND);
 		}
 		
 		try {
 			List<Test> tests = testRepo.getTestsByScheduleOnBetween(student.getBranch(), student.getSem(), student.getSection(), from, to);
 			if (Objects.isNull(tests) || tests.size()==0) {
-				return new ResponseEntity<>(new Response(Respond.error.toString(), "No test available in given range"), HttpStatus.NOT_FOUND);
+				return new ResponseEntity<>(new Response(Status.error, "No test available in given range"), HttpStatus.NOT_FOUND);
 			}
 			
 			List<Test> requiredTests = new ArrayList<>();
@@ -376,10 +376,10 @@ public class TestController {
 				response.getTitles().add(test.getTitle());
 			}
 			
-			return new ResponseEntity<>(new Response(Respond.success.toString(), response), HttpStatus.OK);
+			return new ResponseEntity<>(new Response(Status.success, response), HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();
-			return new ResponseEntity<>(new Response(Respond.error.toString(), e.getMessage()), HttpStatus.NOT_FOUND);
+			return new ResponseEntity<>(new Response(Status.error, e.getMessage()), HttpStatus.NOT_FOUND);
 		}
 		
 	}
