@@ -33,22 +33,27 @@ public class AssignmentSubmission {
 	@Column(nullable = false)
 	private String rollNo;
 	
-	@Column(name = "submitted_on", nullable = false)
-	private String submittedOn;
-	
 	@Lob
 	@Type(type="org.hibernate.type.MaterializedBlobType")
 	@Column(nullable = false, columnDefinition = "oid")
 	private byte[] attachment;
 	
+	@Column(name = "submitted_on", nullable = false)
+	private String submittedOn;
+	
+	@Column(name = "is_late", nullable = false)
+	private boolean isLate;
+	
 	private int score;
 	
-	public AssignmentSubmission(int assignmentId, String rollNo, String submittedOn, byte[] attachment) {
+	public AssignmentSubmission(int assignmentId, String rollNo, byte[] attachment, String submittedOn, boolean isLate) {
 		this.uniqueKey = RandomString.make();
 		this.assignmentId = assignmentId;
 		this.rollNo = rollNo;
-		this.submittedOn = submittedOn;
 		this.attachment = attachment;
+		this.submittedOn = submittedOn;
+		this.isLate = isLate;
+		this.score = -1;
 	}
 	
 }

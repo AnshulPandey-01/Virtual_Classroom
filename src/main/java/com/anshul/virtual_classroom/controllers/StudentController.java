@@ -49,6 +49,7 @@ import com.anshul.virtual_classroom.response.test.PastTests;
 import com.anshul.virtual_classroom.response.test.ScheduledTests;
 import com.anshul.virtual_classroom.response.test.TestInfo;
 import com.anshul.virtual_classroom.utility.ChangePassword;
+import com.anshul.virtual_classroom.utility.assignment.StudentSubmittedView;
 import com.anshul.virtual_classroom.utility.mcq.MCQData;
 import com.anshul.virtual_classroom.utility.mcq.MCQTestData;
 import com.anshul.virtual_classroom.utility.post.PostStudentView;
@@ -363,7 +364,7 @@ public class StudentController {
 	
 	@Transactional(readOnly=true)
 	@RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/{rollNo}/assignments/ongoing")
-	public ResponseEntity<Response> getOngoingAssignments(@PathVariable("rollNo") String rollNo){
+	public ResponseEntity<Response> getOngoingAssignments(@PathVariable("rollNo") String rollNo) {
 		Student student = studentRepo.findById(rollNo).orElse(null);
 		if (Objects.isNull(student)) {
 			return new ResponseEntity<>(new Response(Status.error, "Invalid student roll no"), HttpStatus.NOT_FOUND);
@@ -386,8 +387,8 @@ public class StudentController {
 	}
 	
 	@Transactional(readOnly=true)
-	@RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/{rollNo}/assignments/due")
-	public ResponseEntity<Response> getDueAssignments(@PathVariable("rollNo") String rollNo){
+	@RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/{rollNo}/assignments/missed")
+	public ResponseEntity<Response> getDueAssignments(@PathVariable("rollNo") String rollNo) {
 		Student student = studentRepo.findById(rollNo).orElse(null);
 		if (Objects.isNull(student)) {
 			return new ResponseEntity<>(new Response(Status.error, "Invalid student roll no"), HttpStatus.NOT_FOUND);
@@ -409,10 +410,21 @@ public class StudentController {
 		return new ResponseEntity<>(new Response(Status.success, dueAssignments), HttpStatus.OK);
 	}
 	
+	@RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/{rollNo}/assignments/completed")
+	public ResponseEntity<Response> getCompletedAssignments(@PathVariable("rollNo") String rollNo) {
+		Student student = studentRepo.findById(rollNo).orElse(null);
+		if (Objects.isNull(student)) {
+			return new ResponseEntity<>(new Response(Status.error, "Invalid student roll no"), HttpStatus.NOT_FOUND);
+		}
+		
+		List<StudentSubmittedView> completed = assignmentSubRepo.getSubmittedAssignments(rollNo);
+		return new ResponseEntity<>(new Response(Status.success, completed), HttpStatus.OK);		
+	}
+	
 	@Transactional
 	@RequestMapping(method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE, value = "/{rollNo}/assignment/submission")
 	public ResponseEntity<Response> submitAssignment(@PathVariable("rollNo") String rollNo,
-			@RequestParam("assignmentUniqueKey") String assignmentUniqueKey, @RequestParam(name = "attachment") MultipartFile attachment){
+			@RequestParam("assignmentUniqueKey") String assignmentUniqueKey, @RequestParam(name = "attachment") MultipartFile attachment) {
 		Student student = studentRepo.findById(rollNo).orElse(null);
 		if (Objects.isNull(student)) {
 			return new ResponseEntity<>(new Response(Status.error, "Invalid student roll no"), HttpStatus.NOT_FOUND);
@@ -427,9 +439,7 @@ public class StudentController {
 			return new ResponseEntity<>(new Response(Status.error, "You have already submitted assignment"), HttpStatus.CONFLICT);
 		}
 		
-		if(!timeUtility.checkTimeInBetween(post.getAssignTime(), post.getDueTime())) {
-			return new ResponseEntity<>(new Response(Status.error, "Assignment already finished or hasn't started yet"), HttpStatus.FORBIDDEN);
-		}
+		boolean isLate = !timeUtility.checkTimeInBetween(post.getAssignTime(), post.getDueTime());
 		
 		byte[] file;
 		try {
@@ -439,14 +449,14 @@ public class StudentController {
 			return new ResponseEntity<>(new Response(Status.error, "An error occured please try again"), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 		
-		AssignmentSubmission submission = new AssignmentSubmission(post.getId(), rollNo, timeUtility.getCurrentTime(), file);
+		AssignmentSubmission submission = new AssignmentSubmission(post.getId(), rollNo, file, timeUtility.getCurrentTime(), isLate);
 		assignmentSubRepo.save(submission);
 		
 		return new ResponseEntity<>(new Response(Status.success, "Assignment submitted successfully"), HttpStatus.CREATED);
 	}
 	
 	@RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/{rollNo}/posts")
-	public ResponseEntity<Response> getPosts(@PathVariable("rollNo") String rollNo){
+	public ResponseEntity<Response> getPosts(@PathVariable("rollNo") String rollNo) {
 		Student student = studentRepo.findById(rollNo).orElse(null);
 		if (Objects.isNull(student)) {
 			return new ResponseEntity<>(new Response(Status.error, "Invalid student roll no"), HttpStatus.NOT_FOUND);
