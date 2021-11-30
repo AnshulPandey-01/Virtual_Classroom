@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -26,6 +27,7 @@ public class MailUtilityService {
 	@Autowired
 	private StudentRepo studentRepo;
 	
+	@Async
 	public void sendMails(Test test) {
 		String subject = "New Test from " + test.getCreatedBy();
 		String mailBody = "Title: " + test.getTitle() + "\n" +
@@ -47,6 +49,7 @@ public class MailUtilityService {
 		}
 	}
 	
+	@Async
 	public void sendMails(Post post, HttpServletRequest request) {
 		List<Student> students = studentRepo.findBySemAndBranchAndSection(post.getSem(), post.getBranch(), post.getSection());
 		if (Objects.isNull(students) ||  students.size()==0) return ;

@@ -17,6 +17,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -404,7 +405,7 @@ public class StudentController {
 		}
 		
 		if(dueAssignments.isEmpty()) {
-			return new ResponseEntity<>(new Response(Status.success, "No assignment scheduled"), HttpStatus.OK);
+			return new ResponseEntity<>(new Response(Status.success, "No assignment missed"), HttpStatus.OK);
 		}
 		
 		return new ResponseEntity<>(new Response(Status.success, dueAssignments), HttpStatus.OK);
@@ -418,7 +419,11 @@ public class StudentController {
 		}
 		
 		List<StudentSubmittedView> completed = assignmentSubRepo.getSubmittedAssignments(rollNo);
-		return new ResponseEntity<>(new Response(Status.success, completed), HttpStatus.OK);		
+		if (CollectionUtils.isEmpty(completed)) {
+			return new ResponseEntity<>(new Response(Status.success, "No assignments completed yet"), HttpStatus.OK);
+		}
+		
+		return new ResponseEntity<>(new Response(Status.success, completed), HttpStatus.OK);
 	}
 	
 	@Transactional
@@ -463,7 +468,7 @@ public class StudentController {
 		}
 		
 		List<PostStudentView> posts = postRepo.getPostsBySBS(student.getSem(), student.getBranch(), student.getSection());
-		if(posts.isEmpty()) {
+		if(CollectionUtils.isEmpty(posts)) {
 			return new ResponseEntity<>(new Response(Status.success, "No posts available"), HttpStatus.OK);
 		}
 		
