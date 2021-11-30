@@ -164,7 +164,7 @@ public class TestController {
 				questions = mcqTestRepo.findByTestId(testId);
 				for (int i = 0; i<questions.size(); i++) {
 					MCQTest mcq = (MCQTest)questions.get(i);
-					mcq.setCorrectOption("-1");
+					mcq.setCorrectOption(String.valueOf(test.getMarks()));
 					questions.set(i, mcq);
 				}
 			}
