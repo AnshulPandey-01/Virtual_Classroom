@@ -188,20 +188,6 @@ public class AdminController {
 		return new ResponseEntity<>(new Response(Status.success, list), HttpStatus.OK);
 	}
 	
-	@Transactional
-	@DeleteMapping("/delete/student")
-	public ResponseEntity<Response> deleteStudent(@RequestParam("email") String email) {
-		try {
-			Student s = sRepo.getOneByEmail(email);
-			sRepo.deleteFromMCQ(s.getRollNo());
-			sRepo.deleteFromSubjective(s.getRollNo());
-			sRepo.delete(s);
-			return new ResponseEntity<>(new Response(Status.success, "Student record deleted successfully"), HttpStatus.OK);
-		} catch (Exception e) {
-			return new ResponseEntity<>(new Response(Status.error, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-	}
-	
 	@PostMapping(path="/add/student", consumes= {"application/json"})
 	public ResponseEntity<Response> addStudent(@RequestBody Student s) {		
 		if (sRepo.checkStudentExists(s.getRollNo(), s.getEmail()) >= 1) {
@@ -231,6 +217,20 @@ public class AdminController {
 		try {
 			sRepo.saveAll(students);
 			return new ResponseEntity<>(new Response(Status.success, "Students added successfully"), HttpStatus.CREATED);
+		} catch (Exception e) {
+			return new ResponseEntity<>(new Response(Status.error, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
+	@Transactional
+	@DeleteMapping("/delete/student")
+	public ResponseEntity<Response> deleteStudent(@RequestParam("email") String email) {
+		try {
+			Student s = sRepo.getOneByEmail(email);
+			sRepo.deleteFromMCQ(s.getRollNo());
+			sRepo.deleteFromSubjective(s.getRollNo());
+			sRepo.delete(s);
+			return new ResponseEntity<>(new Response(Status.success, "Student record deleted successfully"), HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(new Response(Status.error, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
 		}

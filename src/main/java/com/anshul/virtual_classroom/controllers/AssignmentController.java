@@ -55,7 +55,7 @@ public class AssignmentController {
 					assignTime, dueTime, sem, branch, section, subjectCode, marks);
 			postRepo.save(post);
 			
-//			mailService.sendMails(post, request);
+			mailService.sendMails(post, request);
 			
 			return new ResponseEntity<>(new Response(Status.success, "Assignment created successfully"), HttpStatus.CREATED);
 		} catch (Exception e) {
