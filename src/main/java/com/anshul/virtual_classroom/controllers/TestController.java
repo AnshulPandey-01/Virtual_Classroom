@@ -262,7 +262,7 @@ public class TestController {
 				
 				for (MCQTestResult result : results) {
 					if (!map.containsKey(result.getRollNo())) {
-						int score = result.getCorrectOption().equals(result.getAnswer()) ? test.getMarks() : test.getNegativeMarks();
+						int score = result.getCorrectOption().equals(result.getAnswer()) ? test.getMarks() : -test.getNegativeMarks();
 						Map<String, Object> temp = new HashMap<>();
 						temp.put("name", result.getName());
 						temp.put("rollNo", result.getRollNo());
