@@ -55,7 +55,7 @@ Password: 123456
 ## Resources
 **Angular Project: <a href="https://github.com/rajendra786952/Online-Test">https://github.com/rajendra786952/Online-Test</a>**
 <br/><br/>
-**ER Diagram: <a href="https://drawsql.app/v-coders/diagrams/exam-portal">https://drawsql.app/v-coders/diagrams/exam-portal</a>**
+**ER Diagram: <a href="https://drawsql.app/v-coders/diagrams/virtual-classroom">https://drawsql.app/v-coders/diagrams/virtual-classroom</a>**
 <br/><br/>
 **Use Case Diagram: <a href="https://app.creately.com/diagram/dNzC6k5bs2G/view">https://app.creately.com/diagram/dNzC6k5bs2G/view</a>**
 
