@@ -30,8 +30,8 @@ import com.anshul.virtual_classroom.response.Response.Status;
 public class MainController {
 	
 	@RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/")
-	public ResponseEntity<Response> welcome(){
-		return new ResponseEntity<>(new Response(Status.success, "Welcome to Virtual Classroom"), HttpStatus.OK);
+	public ResponseEntity<Response<String>> welcome(){
+		return Response.SuccessResponse("Welcome to Virtual Classroom");
 	}
 	
 	@ResponseBody

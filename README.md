@@ -23,7 +23,7 @@
 * npm version: 6.14.8
 * Angular version: 10
 * Java version: 11.0.4
-* SpringBoot version: 2.4.4
+* SpringBoot version: 2.5.5
 * PostgreSQL version: 12
 
 ### Requirements
@@ -34,10 +34,10 @@
 Download all the technology used according to their versions
 
 * Clone the Angular project from <a href="https://github.com/AnshulPandey-01/virtual-exam">here</a>.
-* Open the project in VS Code and their in terminal type ``` npm i ```
-* Clone this Spring Boot Project from <a href="https://github.com/AnshulPandey-01/exam_portal">here</a> and open it using STS and wait for maven to download all the dependencies.
-* Now to run the angular project type ``` ng serve -o ```
-* Run spring boot project using STS.
+* Open the project in VS Code and their in terminal type ```npm i```
+* Clone this Spring Boot Project from <a href="https://github.com/AnshulPandey-01/Virtual_Classroom">here</a> and open it using STS and wait for maven to download all the dependencies.
+* Now to run the angular project type ```ng serve -o```
+* Run spring boot project using ```mvn spring-boot:run```.
 
 ## Online Project: 
 <a href="https://app-virtual-classroom.web.app/exam-portal">https://app-virtual-classroom.web.app/</a>
